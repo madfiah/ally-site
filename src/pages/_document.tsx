@@ -5,6 +5,13 @@ export default function Document() {
     <Html lang="en">
       <Head />
       <body>
+        <div id="globalLoader">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif"
+            alt=""
+            width={100}
+          />
+        </div>
         <Main />
         <NextScript />
       </body>
