@@ -1,8 +1,22 @@
-import { Col, Row, Button, Modal, Form, Input, Space } from 'antd'
+import {
+  Col,
+  Row,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Space,
+  Alert,
+  notification,
+} from 'antd'
 import { Nunito, Open_Sans } from '@next/font/google'
 import { useState } from 'react'
 import Head from 'next/head'
 import ForgotPassword from './forgotPassword'
+
+import { signIn } from 'next-auth/react'
+import { redirect } from 'next/navigation'
+import Router from 'next/router'
 
 const nunito = Nunito({ subsets: ['latin'] })
 
@@ -12,9 +26,32 @@ interface Props {
 
 const Login = ({ without_layout }: Props) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const onFinish = (values: any) => {
-    console.log('Success:', values)
+  const onFinish = async (values: any) => {
+    setError('')
+    setLoading(true)
+
+    const result = await signIn('credentials', {
+      email: values.email,
+      password: values.password,
+      redirect: false,
+      callbackUrl: '/dashboard',
+    })
+    setLoading(false)
+
+    if (result?.error === 'CredentialsSignin') {
+      setError('Email or Password is Wrong')
+    } else {
+      notification.success({
+        message: 'Login Success',
+      })
+
+      if (result?.url) {
+        Router.push(result?.url)
+      }
+    }
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -66,11 +103,13 @@ const Login = ({ without_layout }: Props) => {
                 autoComplete="off"
                 layout="vertical"
               >
+                {error !== '' && <Alert message={error} type="error" />}
+                <br />
                 <Form.Item
-                  label="Username"
-                  name="username"
+                  label="Email"
+                  name="email"
                   rules={[
-                    { required: true, message: 'Please input your username!' },
+                    { required: true, message: 'Please input your email!' },
                   ]}
                 >
                   <Input />
@@ -97,7 +136,7 @@ const Login = ({ without_layout }: Props) => {
                 </Form.Item>
 
                 <Form.Item>
-                  <Button type="primary" htmlType="submit">
+                  <Button type="primary" htmlType="submit" loading={loading}>
                     Submit
                   </Button>
                 </Form.Item>

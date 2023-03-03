@@ -4,7 +4,10 @@ import NextNProgress from 'nextjs-progressbar'
 import '@/styles/global.scss'
 import { useEffect } from 'react'
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const loader = document.getElementById('globalLoader')
@@ -26,7 +29,7 @@ export default function App({ Component, pageProps }: AppProps) {
       {pageProps.without_layout ? (
         <Component {...pageProps} />
       ) : (
-        <KbLayout>
+        <KbLayout session={session}>
           <Component {...pageProps} />
         </KbLayout>
       )}

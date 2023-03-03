@@ -12,6 +12,7 @@ import {
   MenuFoldOutlined,
   ApartmentOutlined,
   RadiusSettingOutlined,
+  DiffOutlined,
 } from '@ant-design/icons'
 
 type MenuItem = Required<MenuProps>['items'][number]
@@ -47,12 +48,12 @@ export const menuItems: MenuItem[] = [
   ),
   getItem(<Link href="/users">Users</Link>, 'users', <UserOutlined />),
   getItem(
-    <Link href="/get-fundes">Get Funded</Link>,
+    <Link href="/get-fundes">Get Fundeds</Link>,
     'get-fundeds',
-    <UserOutlined />
+    <DiffOutlined />
   ),
   getItem(
-    <Link href="/withdrawals">Withdrawal</Link>,
+    <Link href="/withdrawals">Withdrawals</Link>,
     'withdrawals',
     <MoneyCollectOutlined />
   ),

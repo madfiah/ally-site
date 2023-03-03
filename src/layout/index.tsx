@@ -1,4 +1,5 @@
 import React, { Profiler, useState } from 'react'
+import { SessionProvider } from 'next-auth/react'
 import {
   DesktopOutlined,
   FileOutlined,
@@ -21,9 +22,10 @@ const { Header, Content, Footer, Sider } = Layout
 
 type LayoutProps = {
   children: React.ReactNode
+  session: any
 }
 
-const KbLayout = ({ children }: LayoutProps) => {
+const KbLayout = ({ children, session }: LayoutProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const {
     token: { colorBgContainer },
@@ -37,67 +39,68 @@ const KbLayout = ({ children }: LayoutProps) => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Layout style={{ minHeight: '100vh' }}>
-        <Sider
-          collapsible
-          collapsed={collapsed}
-          theme={'light'}
-          onCollapse={() => setCollapsed(!collapsed)}
-        >
-          <div
-            style={{
-              height: 32,
-              margin: 16,
-              background: 'rgba(255, 255, 255, 0.2)',
-            }}
+      <SessionProvider session={session}>
+        <Layout style={{ minHeight: '100vh' }}>
+          <Sider
+            collapsible
+            collapsed={collapsed}
+            theme={'light'}
+            onCollapse={() => setCollapsed(!collapsed)}
           >
-            {collapsed ? (
-              <div className="text-center">
-                <img
-                  src={`https://res.cloudinary.com/kbas/image/upload/v1562814584/logo/LOGO-19-19_has4sh.png`}
-                  width={`25`}
-                />
-              </div>
-            ) : (
-              <img
-                src={`https://res.cloudinary.com/kbas/image/upload/v1562814565/logo/LOGO-17_djoes1.png`}
-                height={23}
-              />
-            )}
-          </div>
-          <Menu
-            theme="light"
-            defaultSelectedKeys={['1']}
-            mode="inline"
-            items={menuItems}
-          />
-        </Sider>
-        <Layout className="site-layout">
-          <Header
-            style={{
-              padding: '0 20px',
-              background: '#fff',
-            }}
-          >
-            <HeaderLayout />
-          </Header>
-          <Content style={{ margin: '0 16px' }}>
             <div
               style={{
-                padding: 15,
-                marginTop: 20,
-                minHeight: 360,
+                height: 32,
+                margin: 16,
+                background: 'rgba(255, 255, 255, 0.2)',
               }}
             >
-              {children}
+              {collapsed ? (
+                <div className="text-center">
+                  <img
+                    src={`https://res.cloudinary.com/kbas/image/upload/v1562814584/logo/LOGO-19-19_has4sh.png`}
+                    width={`25`}
+                  />
+                </div>
+              ) : (
+                <img
+                  src={`https://res.cloudinary.com/kbas/image/upload/v1562814565/logo/LOGO-17_djoes1.png`}
+                  height={23}
+                />
+              )}
             </div>
-          </Content>
-          <Footer style={{ textAlign: 'center' }}>
-            Kapital Boost PTE LTD @2023 Created by IT Teams
-          </Footer>
+            <Menu
+              theme="light"
+              defaultSelectedKeys={['1']}
+              mode="inline"
+              items={menuItems}
+            />
+          </Sider>
+          <Layout className="site-layout">
+            <Header
+              style={{
+                padding: '0 20px',
+                background: '#fff',
+              }}
+            >
+              <HeaderLayout />
+            </Header>
+            <Content style={{ margin: '0 16px' }}>
+              <div
+                style={{
+                  padding: 15,
+                  marginTop: 20,
+                  minHeight: 360,
+                }}
+              >
+                {children}
+              </div>
+            </Content>
+            <Footer style={{ textAlign: 'center' }}>
+              Kapital Boost PTE LTD @2023 Created by IT Teams
+            </Footer>
+          </Layout>
         </Layout>
-      </Layout>
+      </SessionProvider>
     </>
   )
 }

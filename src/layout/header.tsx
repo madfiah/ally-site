@@ -1,12 +1,21 @@
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { Menu, Space, Button, Dropdown } from 'antd'
+import { signIn, signOut, useSession } from 'next-auth/react'
 
 const items: MenuProps['items'] = [
   {
     key: '1',
     label: (
-      <Button type="link" size="small">
+      <Button
+        type="link"
+        size="small"
+        onClick={() =>
+          signOut({
+            callbackUrl: '/login',
+          })
+        }
+      >
         <LogoutOutlined /> Logout
       </Button>
     ),
