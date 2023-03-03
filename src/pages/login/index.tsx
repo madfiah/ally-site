@@ -37,7 +37,7 @@ const Login = ({ without_layout }: Props) => {
       email: values.email,
       password: values.password,
       redirect: false,
-      callbackUrl: '/dashboard',
+      callbackUrl: '/',
     })
     setLoading(false)
 

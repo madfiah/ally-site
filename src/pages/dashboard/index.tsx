@@ -14,7 +14,7 @@ interface IProps {
   token: string
 }
 
-const index = ({ data, token }: IProps) => {
+const Dashboard = ({ data, token }: IProps) => {
   return (
     <>
       <Row gutter={16}>
@@ -107,7 +107,7 @@ const index = ({ data, token }: IProps) => {
   )
 }
 
-export default index
+export default Dashboard
 
 export async function getServerSideProps(context: any) {
   const session: any = await getSession(context)

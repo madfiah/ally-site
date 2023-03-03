@@ -36,11 +36,7 @@ function getItem(
 }
 
 export const menuItems: MenuItem[] = [
-  getItem(
-    <Link href="/dashboard">Dashboard</Link>,
-    'dashboard',
-    <PieChartOutlined />
-  ),
+  getItem(<Link href="/">Dashboard</Link>, 'dashboard', <PieChartOutlined />),
   getItem(
     <Link href="/campaigns">Campaigns</Link>,
     'campaigns',
