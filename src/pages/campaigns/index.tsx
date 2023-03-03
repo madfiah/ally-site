@@ -1,4 +1,5 @@
 import { Api } from '@/api/api'
+import { currency } from '@/utils/helpers'
 import {
   EditOutlined,
   MoreOutlined,
@@ -17,12 +18,14 @@ import {
   Table,
   Tag,
   Tooltip,
+  Typography,
 } from 'antd'
 
 import { getSession } from 'next-auth/react'
 import ExpandedCampaign from './components/ExpandedCampaign'
 
 const { Search } = Input
+const { Text } = Typography
 
 const nunito = Nunito({ subsets: ['latin'] })
 
@@ -70,6 +73,26 @@ const columns = [
     key: 'expiry_datetime',
   },
   {
+    title: 'Current funding ($)',
+    dataIndex: 'investments_count',
+    key: 'investments_count',
+    render: (investments_count: any) => (
+      <div className="text-end">
+        {investments_count ? currency(parseFloat(investments_count)) : '$0'}
+      </div>
+    ),
+  },
+  {
+    title: 'Total funding ($)',
+    dataIndex: 'total_invest_amount',
+    key: 'total_invest_amount',
+    render: (total_invest_amount: any) => (
+      <div className="text-end">
+        {total_invest_amount ? currency(parseFloat(total_invest_amount)) : '$0'}
+      </div>
+    ),
+  },
+  {
     title: 'Enable',
     dataIndex: 'is_enable',
     key: 'is_enable',
@@ -115,51 +138,19 @@ const items: MenuProps['items'] = [
   },
   {
     key: '4',
-    label: (
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://www.luohanacademy.com"
-      >
-        Master Payout
-      </a>
-    ),
+    label: <span>Master Payout</span>,
   },
   {
     key: '5',
-    label: (
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://www.luohanacademy.com"
-      >
-        Campaign Updates
-      </a>
-    ),
+    label: <span>Campaign Updates</span>,
   },
   {
     key: '6',
-    label: (
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://www.luohanacademy.com"
-      >
-        Duplicate
-      </a>
-    ),
+    label: <span>Duplicate</span>,
   },
   {
     key: '7',
-    label: (
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://www.luohanacademy.com"
-      >
-        Delete
-      </a>
-    ),
+    label: <Text type="danger">Delete</Text>,
   },
 ]
 
@@ -215,11 +206,18 @@ export async function getServerSideProps(context: any) {
   const user = session?.user
 
   return Api.get('campaign?limit=25', user.token, user.id).then((res) => {
-    console.log('Data Campaign : ', res)
-    return {
-      props: {
-        data: res.data,
-      },
+    if (res.data) {
+      return {
+        props: {
+          data: res.data,
+        },
+      }
+    } else {
+      return {
+        props: {
+          data: [],
+        },
+      }
     }
   })
 }
