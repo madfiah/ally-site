@@ -14,6 +14,7 @@ import {
   Dropdown,
   Input,
   MenuProps,
+  notification,
   Space,
   Table,
   Tag,
@@ -21,7 +22,9 @@ import {
   Typography,
 } from 'antd'
 
-import { getSession } from 'next-auth/react'
+import { getSession, signOut } from 'next-auth/react'
+import Link from 'next/link'
+import { useEffect } from 'react'
 import ExpandedCampaign from './components/ExpandedCampaign'
 
 const { Search } = Input
@@ -31,6 +34,8 @@ const nunito = Nunito({ subsets: ['latin'] })
 
 interface IProps {
   data: any[]
+  error?: any
+  errorMessage?: string
 }
 
 const columns = [
@@ -137,14 +142,6 @@ const items: MenuProps['items'] = [
     label: <span>Payout Report</span>,
   },
   {
-    key: '4',
-    label: <span>Master Payout</span>,
-  },
-  {
-    key: '5',
-    label: <span>Campaign Updates</span>,
-  },
-  {
     key: '6',
     label: <span>Duplicate</span>,
   },
@@ -154,8 +151,17 @@ const items: MenuProps['items'] = [
   },
 ]
 
-const index = ({ data }: IProps) => {
-  console.log(data)
+const index = ({ data, error, errorMessage }: IProps) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (error) {
+      notification.error({ message: errorMessage })
+
+      signOut({
+        callbackUrl: '/login',
+      })
+    }
+  }, [])
 
   const onSearch = (value: string) => {
     console.log(value)
@@ -173,9 +179,11 @@ const index = ({ data }: IProps) => {
                 style={{ width: 200 }}
               />
               <Tooltip title="Create new campaign" placement={`topRight`}>
-                <Button type="dashed">
-                  <PlusOutlined />
-                </Button>
+                <Link href={'/campaigns/new'}>
+                  <Button type="dashed">
+                    <PlusOutlined />
+                  </Button>
+                </Link>
               </Tooltip>
             </Space>
           </Space>
@@ -192,6 +200,7 @@ const index = ({ data }: IProps) => {
               ),
               rowExpandable: (record) => record.id !== 'Not Expandable',
             }}
+            scroll={{ x: 800 }}
           />
         </div>
       </div>
@@ -205,19 +214,21 @@ export async function getServerSideProps(context: any) {
   const session: any = await getSession(context)
   const user = session?.user
 
-  return Api.get('campaign?limit=25', user.token, user.id).then((res) => {
-    if (res.data) {
+  return await Api.get('campaign?limit=25', user.token, user.id)
+    .then((res: any) => {
       return {
         props: {
           data: res.data,
         },
       }
-    } else {
+    })
+    .catch((err) => {
       return {
         props: {
           data: [],
+          error: err.status,
+          errorMessage: 'Your login session was expired',
         },
       }
-    }
-  })
+    })
 }

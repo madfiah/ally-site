@@ -1,0 +1,50 @@
+import React, { useState } from 'react'
+import { Editor } from '@tinymce/tinymce-react'
+
+export const BundledEditor = () => {
+  const handleEditorChange = (content: any, editor: any) => {
+    console.log('Content was updated:', content)
+  }
+  // note that skin and content_css is disabled to avoid the normal
+  // loading process and is instead loaded as a string via content_style
+  return (
+    <>
+      <Editor
+        onChange={(e, d) => console.log(e.target.value, d)}
+        initialValue="<p>This is the initial content of the editor.</p>"
+        init={{
+          height: 500,
+          width: '100%',
+          plugins: [
+            'advlist',
+            'autolink',
+            'lists',
+            'link',
+            'image',
+            'charmap',
+            'preview',
+            'anchor',
+            'searchreplace',
+            'visualblocks',
+            'code',
+            'fullscreen',
+            'insertdatetime',
+            'media',
+            'table',
+            'code',
+            'help',
+            'wordcount',
+          ],
+          toolbar:
+            'undo redo | blocks | ' +
+            'bold italic forecolor | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist outdent indent | ' +
+            'removeformat | help',
+          content_style:
+            'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        }}
+        onEditorChange={handleEditorChange}
+      />
+    </>
+  )
+}

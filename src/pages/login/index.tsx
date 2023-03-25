@@ -48,6 +48,8 @@ const Login = ({ without_layout }: Props) => {
         message: 'Login Success',
       })
 
+      console.log(result)
+
       if (result?.url) {
         Router.push(result?.url)
       }
