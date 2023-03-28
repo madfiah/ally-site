@@ -547,7 +547,6 @@ const NewCampaign = () => {
               <Button>Reset</Button>
             </Space>
           </Col>
-          <Col span={12}></Col>
         </Row>
       </Form>
     )

@@ -110,44 +110,55 @@ const columns = [
     dataIndex: '',
     key: 'x',
     width: '150px',
-    render: () => (
+    render: (data: any) => (
       <Space size={`small`} className="space-end">
         <Button size="small">
           <Tooltip title="Edit campaign">
             <EditOutlined />
           </Tooltip>
         </Button>
-        <Button size="small">
-          <Tooltip title="Contract Campaign">
-            <FileProtectOutlined />
-          </Tooltip>
-        </Button>
-        <Dropdown menu={{ items }} placement="bottomRight">
+        <Link href={`/campaigns/contract`}>
+          <Button size="small">
+            <Tooltip title="Contract Campaign">
+              <FileProtectOutlined />
+            </Tooltip>
+          </Button>
+        </Link>
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: '2',
+                label: (
+                  <Link href={'/campaigns/investment-report'}>
+                    Investment Report
+                  </Link>
+                ),
+              },
+              {
+                key: '3',
+                label: (
+                  <Link href={'/campaigns/payout-report'}>Payout Report</Link>
+                ),
+              },
+              {
+                key: '6',
+                label: <span>Duplicate</span>,
+              },
+              {
+                key: '7',
+                label: <Text type="danger">Delete</Text>,
+              },
+            ],
+          }}
+          placement="bottomRight"
+        >
           <Button size="small">
             <MoreOutlined />
           </Button>
         </Dropdown>
       </Space>
     ),
-  },
-]
-
-const items: MenuProps['items'] = [
-  {
-    key: '2',
-    label: <span>Investment Report</span>,
-  },
-  {
-    key: '3',
-    label: <span>Payout Report</span>,
-  },
-  {
-    key: '6',
-    label: <span>Duplicate</span>,
-  },
-  {
-    key: '7',
-    label: <Text type="danger">Delete</Text>,
   },
 ]
 
