@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Api } from '@/api/api'
 import { currency } from '@/utils/helpers'
 import {

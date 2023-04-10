@@ -59,12 +59,14 @@ const KbLayout = ({ children, session }: LayoutProps) => {
                   <img
                     src={`https://res.cloudinary.com/kbas/image/upload/v1562814584/logo/LOGO-19-19_has4sh.png`}
                     width={`25`}
+                    alt={`logo kb`}
                   />
                 </div>
               ) : (
                 <img
                   src={`https://res.cloudinary.com/kbas/image/upload/v1562814565/logo/LOGO-17_djoes1.png`}
                   height={23}
+                  alt={`logo kb`}
                 />
               )}
             </div>

@@ -44,7 +44,7 @@ export const menuItems: MenuItem[] = [
   ),
   getItem(<Link href="/users">Users</Link>, 'users', <UserOutlined />),
   getItem(
-    <Link href="/get-fundes">Get Fundeds</Link>,
+    <Link href="/get-fundeds">Get Fundeds</Link>,
     'get-fundeds',
     <DiffOutlined />
   ),
