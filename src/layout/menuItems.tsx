@@ -54,9 +54,12 @@ export const menuItems: MenuItem[] = [
     <MoneyCollectOutlined />
   ),
   getItem('Partnering', 'partner-menu', <ApartmentOutlined />, [
-    getItem('Affiliations', 'affiliations'),
-    getItem('Partners', 'partnets'),
-    getItem('Referal', 'referal'),
+    getItem(
+      <Link href="/partners/affiliations">Affiliations</Link>,
+      'affiliations'
+    ),
+    getItem(<Link href="/partners">Partners</Link>, 'partnets'),
+    getItem(<Link href="/partners/referals">Referals</Link>, 'referal'),
   ]),
   getItem('Main Setting', 'main-setting', <RadiusSettingOutlined />, [
     getItem('Admins', 'admins'),
