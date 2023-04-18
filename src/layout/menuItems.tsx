@@ -62,12 +62,15 @@ export const menuItems: MenuItem[] = [
     getItem(<Link href="/partners/referals">Referals</Link>, 'referal'),
   ]),
   getItem('Main Setting', 'main-setting', <RadiusSettingOutlined />, [
-    getItem('Admins', 'admins'),
-    getItem('Banks', 'banks'),
-    getItem('Banners', 'banners'),
-    getItem('Blogs', 'blogs'),
-    getItem('Contract Templates', 'contract-templates'),
-    getItem('Contact Form', 'contact-form'),
-    getItem('FAQs', 'faqs'),
+    getItem(<Link href="/admins">Admins</Link>, 'admins'),
+    getItem(<Link href="/banks">Banks</Link>, 'banks'),
+    getItem(<Link href="/banners">Banners</Link>, 'banners'),
+    getItem(<Link href="/blogs">Blogs</Link>, 'blogs'),
+    getItem(
+      <Link href="/contract-templates">Contract Templates</Link>,
+      'contract-templates'
+    ),
+    getItem(<Link href="/contacts">Contact Form</Link>, 'contact-form'),
+    getItem(<Link href="/faqs">FAQs</Link>, 'faqs'),
   ]),
 ]

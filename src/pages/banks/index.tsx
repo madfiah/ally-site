@@ -69,12 +69,12 @@ const Banks = () => {
       width: '150px',
       render: (data: any) => (
         <Space size={`small`} className="space-end">
-          <Tooltip title="Edit master payout">
+          <Tooltip title="Edit data bank">
             <Button size="small" onClick={() => onOpenForm('edit', data)}>
               <EditOutlined />
             </Button>
           </Tooltip>
-          <Tooltip title="Delete master payout">
+          <Tooltip title="Delete bank account">
             <Button size="small" danger>
               <DeleteOutlined />
             </Button>
@@ -95,7 +95,7 @@ const Banks = () => {
       <Space className="space-between mb-1">
         <h3 className="m-0 fw-300">List of Banks</h3>
 
-        <Tooltip title="Add withdrawal request">
+        <Tooltip title="Add new bank account">
           <Button
             size="small"
             icon={<PlusOutlined />}

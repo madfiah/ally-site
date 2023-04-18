@@ -67,12 +67,12 @@ const Admins = () => {
       width: '150px',
       render: (data: any) => (
         <Space size={`small`} className="space-end">
-          <Tooltip title="Edit master payout">
+          <Tooltip title="Edit data admin">
             <Button size="small" onClick={() => onOpenForm('edit', data)}>
               <EditOutlined />
             </Button>
           </Tooltip>
-          <Tooltip title="Delete master payout">
+          <Tooltip title="Delete data admin">
             <Button size="small" danger>
               <DeleteOutlined />
             </Button>
@@ -91,9 +91,9 @@ const Admins = () => {
   return (
     <Card>
       <Space className="space-between mb-1">
-        <h3 className="m-0 fw-300">List of Banks</h3>
+        <h3 className="m-0 fw-300">List of Admins</h3>
 
-        <Tooltip title="Add new bank">
+        <Tooltip title="Add new admin">
           <Button
             size="small"
             icon={<PlusOutlined />}
