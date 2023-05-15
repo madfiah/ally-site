@@ -1,4 +1,10 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RetweetOutlined,
+  TwitterOutlined,
+} from '@ant-design/icons'
 import { Button, Card, Space, Table, Tooltip } from 'antd'
 import { useState } from 'react'
 import FormAdmin from './components/formAdmin'
@@ -70,6 +76,12 @@ const Admins = () => {
           <Tooltip title="Edit data admin">
             <Button size="small" onClick={() => onOpenForm('edit', data)}>
               <EditOutlined />
+            </Button>
+          </Tooltip>
+          {/* reset password button just active for super admin */}
+          <Tooltip title="Reset password admin">
+            <Button size="small">
+              <RetweetOutlined />
             </Button>
           </Tooltip>
           <Tooltip title="Delete data admin">

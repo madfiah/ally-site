@@ -1,11 +1,27 @@
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import {
+  LogoutOutlined,
+  RetweetOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { Menu, Space, Button, Dropdown } from 'antd'
 import { signIn, signOut, useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 const items: MenuProps['items'] = [
   {
     key: '1',
+    label: (
+      <Link href={`/reset-password`}>
+        <Button type="link" size="small">
+          <RetweetOutlined /> Reset Password
+        </Button>
+      </Link>
+    ),
+  },
+  {
+    key: '2',
     label: (
       <Button
         type="link"
@@ -15,6 +31,7 @@ const items: MenuProps['items'] = [
             callbackUrl: '/login',
           })
         }
+        danger
       >
         <LogoutOutlined /> Logout
       </Button>
