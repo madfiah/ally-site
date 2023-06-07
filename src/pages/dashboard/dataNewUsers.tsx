@@ -62,7 +62,7 @@ const DataNewUsers = ({ token, title }: IProps) => {
       <div className="kb-card with-radius">
         <div className="card-title">
           <Space align={`center`} size={`small`} className="space-between">
-            <p className={nunito.className}>Users need to be reviewed</p>
+            <p className={nunito.className}>{title}</p>
             <Space wrap>
               <Button
                 size="small"
