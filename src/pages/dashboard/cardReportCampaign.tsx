@@ -36,7 +36,7 @@ const CardReportCampaign = ({ token, getData, title }: IProps) => {
   return (
     <div
       className="kb-card with-radius card-shadow"
-      style={{ height: '150px', background: 'rgba(231, 76, 60, 0.2)' }}
+      style={{ height: '150px' }}
     >
       <div className="card-body">
         <h2 className={`${nunito.className} m-0 mb-1`}>{title}</h2>
@@ -53,10 +53,12 @@ const CardReportCampaign = ({ token, getData, title }: IProps) => {
           <>
             {data !== null && (
               <>
-                <p className="m-0">Total SME : {10}</p>
-                <p className="m-0">On Going SME : {3}</p>
-                <p className="m-0">Total Donation : {22}</p>
-                <p className="m-0">On Going Donation : {1}</p>
+                <p className="m-0">Total SME : {data.sme}</p>
+                <p className="m-0">On Going SME : {data.sme_ongoing}</p>
+                <p className="m-0">Total Donation : {data.donation}</p>
+                <p className="m-0">
+                  On Going Donation : {data.donation_ongoing}
+                </p>
               </>
             )}
           </>

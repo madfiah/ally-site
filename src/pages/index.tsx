@@ -33,7 +33,7 @@ const Dashboard = ({ token }: IProps) => {
         <Col className="gutter-row" xs={24} md={8} xl={6}>
           <CardReportCampaign
             token={token}
-            getData="kb wallet"
+            getData="campaigns"
             title="Campaigns"
           />
         </Col>
