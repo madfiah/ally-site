@@ -3,6 +3,7 @@ import { LoadingOutlined } from '@ant-design/icons'
 import { Nunito } from '@next/font/google'
 import { InputNumber, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { currency } from '@/utils/helpers'
 
 const nunito = Nunito({ subsets: ['latin'] })
 
@@ -54,35 +55,8 @@ const CardReportAmountInvested = ({ token, getData, title }: IProps) => {
           <>
             {data !== null && (
               <>
-                <p className="m-0">
-                  <Space>
-                    <span>Total :</span>
-
-                    <InputNumber
-                      style={{ width: '100%', paddingLeft: 0 }}
-                      defaultValue={data.total}
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                      }
-                      bordered={false}
-                      readOnly
-                    />
-                  </Space>
-                </p>
-                <p className="m-0">
-                  <Space>
-                    <span>Paid :</span>
-                    <InputNumber
-                      style={{ width: '100%', paddingLeft: 0 }}
-                      defaultValue={data.paid}
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                      }
-                      bordered={false}
-                      readOnly
-                    />
-                  </Space>
-                </p>
+                <p className="m-0">Total : {currency(data.total)}</p>
+                <p className="m-0">Paid : {currency(data.paid)}</p>
               </>
             )}
           </>
