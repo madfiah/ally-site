@@ -1,5 +1,5 @@
 import { Button, Col, Divider, Row, Space } from 'antd'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { getSession } from 'next-auth/react'
 import { Api } from '@/api/api'
 import DataNewUsers from './dataNewUsers'
@@ -15,6 +15,10 @@ interface IProps {
 }
 
 const Dashboard = ({ data, token }: IProps) => {
+  useEffect(() => {
+    console.log('Res Data : ', token)
+  }, [data])
+
   return (
     <>
       <Row gutter={16}>
@@ -111,11 +115,12 @@ export default Dashboard
 
 export async function getServerSideProps(context: any) {
   const session: any = await getSession(context)
-  const token = session?.user
-  console.log(session?.user)
-  // Api.get('dashboard', token).then((res) => {
-  //   console.log(res)
-  // })
+  const token = session?.user.token
+
+  Api.get('dashboard/user-to-review', token).then((res) => {
+    console.log('user-to-review : ', res)
+  })
+
   const data = {
     id: 1,
   }

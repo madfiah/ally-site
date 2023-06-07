@@ -25,7 +25,7 @@ import {
 
 import { getSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import ExpandedCampaign from './components/ExpandedCampaign'
 
 const { Search } = Input
@@ -34,9 +34,7 @@ const { Text } = Typography
 const nunito = Nunito({ subsets: ['latin'] })
 
 interface IProps {
-  data: any[]
-  error?: any
-  errorMessage?: string
+  user: any
 }
 
 const columns = [
@@ -163,16 +161,33 @@ const columns = [
   },
 ]
 
-const index = ({ data, error, errorMessage }: IProps) => {
+const Index = ({ user }: IProps) => {
+  const [campaigns, setCampaigns] = useState<any>({
+    data: [],
+  })
+
+  const initCampaigns = async () => {
+    Api.get('campaign?limit=25', user.token, {}, user.id)
+      .then((res: any) => {
+        console.log(res.data)
+        setCampaigns(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+        if (err.status === 401) {
+          notification.error({ message: 'Your login session was expired' })
+
+          signOut({
+            callbackUrl: '/login',
+          })
+        } else {
+          notification.error({ message: err.message })
+        }
+      })
+  }
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    if (error) {
-      notification.error({ message: errorMessage })
-
-      signOut({
-        callbackUrl: '/login',
-      })
-    }
+    initCampaigns()
   }, [])
 
   const onSearch = (value: string) => {
@@ -204,7 +219,7 @@ const index = ({ data, error, errorMessage }: IProps) => {
           <Table
             bordered
             rowKey="id"
-            dataSource={data}
+            dataSource={campaigns.data}
             columns={columns}
             expandable={{
               expandedRowRender: (record) => (
@@ -220,27 +235,15 @@ const index = ({ data, error, errorMessage }: IProps) => {
   )
 }
 
-export default index
+export default Index
 
 export async function getServerSideProps(context: any) {
   const session: any = await getSession(context)
   const user = session?.user
 
-  return await Api.get('campaign?limit=25', user.token, user.id)
-    .then((res: any) => {
-      return {
-        props: {
-          data: res.data,
-        },
-      }
-    })
-    .catch((err) => {
-      return {
-        props: {
-          data: [],
-          error: err.status,
-          errorMessage: 'Your login session was expired',
-        },
-      }
-    })
+  return {
+    props: {
+      user: user,
+    },
+  }
 }

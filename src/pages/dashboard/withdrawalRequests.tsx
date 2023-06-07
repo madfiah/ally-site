@@ -1,6 +1,6 @@
 import { Api } from '@/api/api'
 import { Nunito } from '@next/font/google'
-import { Button, notification, Space, Table } from 'antd'
+import { Button, InputNumber, notification, Space, Table, Tag } from 'antd'
 import { useEffect, useState } from 'react'
 
 const nunito = Nunito({ subsets: ['latin'] })
@@ -8,18 +8,42 @@ const nunito = Nunito({ subsets: ['latin'] })
 const columns = [
   {
     title: 'Name',
-    dataIndex: 'firstname',
-    key: 'firstname',
+    dataIndex: 'user_full_name',
+    key: 'user_full_name',
   },
   {
-    title: 'Email',
-    dataIndex: 'email',
-    key: 'email',
+    title: 'Amount',
+    dataIndex: 'amount',
+    key: 'amount',
+    render: (amount: any) => {
+      return (
+        <InputNumber
+          style={{ width: '150px', paddingLeft: 0 }}
+          defaultValue={parseFloat(amount)}
+          formatter={(value) =>
+            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+          }
+          bordered={false}
+          readOnly
+        />
+      )
+    },
   },
   {
-    title: 'Country',
-    dataIndex: 'country',
-    key: 'country',
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+    render: (status: boolean) => {
+      return (
+        <>
+          {status ? (
+            <Tag color="green">Paid</Tag>
+          ) : (
+            <Tag color="red">Unpaid</Tag>
+          )}
+        </>
+      )
+    },
   },
 ]
 
@@ -28,19 +52,19 @@ interface IProps {
   title: string
 }
 
-const DataNewUsers = ({ token, title }: IProps) => {
-  const [user, setUser] = useState<any>({
+const WithdrawalRequests = ({ token, title }: IProps) => {
+  const [withdraw, setWithdraw] = useState<any>({
     data: [],
   })
   const [loading, setLoading] = useState(false)
-  const [day, setDay] = useState(1)
+  const [day, setDay] = useState(500)
 
-  const initUser = async (page: number) => {
+  const iniWithdraw = async (page: number) => {
     setLoading(true)
 
-    Api.get(`dashboard/user-to-review`, token, { day: day, page: page })
+    Api.get(`dashboard/withdraw-requests`, token, { day: day, page: page })
       .then((res: any) => {
-        setUser(res.data)
+        setWithdraw(res.data)
       })
       .catch((err) => {
         notification.error(err.message)
@@ -49,12 +73,12 @@ const DataNewUsers = ({ token, title }: IProps) => {
   }
 
   useEffect(() => {
-    initUser(1)
+    iniWithdraw(1)
   }, [day])
 
   const handleTableChange = (pagination: any) => {
     console.log(pagination)
-    initUser(pagination.current)
+    iniWithdraw(pagination.current)
   }
 
   return (
@@ -66,8 +90,8 @@ const DataNewUsers = ({ token, title }: IProps) => {
             <Space wrap>
               <Button
                 size="small"
-                type={day === 1 ? 'primary' : 'default'}
-                onClick={() => setDay(1)}
+                type={day === 500 ? 'primary' : 'default'}
+                onClick={() => setDay(500)}
               >
                 Today
               </Button>
@@ -91,12 +115,12 @@ const DataNewUsers = ({ token, title }: IProps) => {
         <div className="card-body p-0">
           <Table
             loading={loading}
-            dataSource={user.data}
+            dataSource={withdraw.data}
             columns={columns}
             onChange={handleTableChange}
             pagination={{
-              total: user?.total,
-              current: user?.current_page,
+              total: withdraw?.total,
+              current: withdraw?.current_page,
               pageSize: 5,
               showSizeChanger: false,
             }}
@@ -107,4 +131,4 @@ const DataNewUsers = ({ token, title }: IProps) => {
   )
 }
 
-export default DataNewUsers
+export default WithdrawalRequests

@@ -2,7 +2,7 @@ import axios from 'axios'
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const Api = {
-  get: async (path: string, token: any, id?: any) => {
+  get: async (path: string, token: any, params?: any, id?: any) => {
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -10,6 +10,7 @@ export const Api = {
         Authorization: token ? `Bearer ${token}` : token,
         id: id,
       },
+      params: params,
     }
 
     return await new Promise((resolve, reject) => {
