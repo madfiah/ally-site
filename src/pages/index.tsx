@@ -75,7 +75,7 @@ const Dashboard = ({ token }: IProps) => {
       </Row>
       <Divider dashed />
 
-      <Row gutter={16}>
+      <Row gutter={[16, 16]}>
         <Col md={24} xl={12}>
           <DataNewUsers token={token} title="Users need to be reviewed" />
         </Col>

@@ -2,6 +2,7 @@ import { Api } from '@/api/api'
 import { Nunito } from '@next/font/google'
 import { Button, InputNumber, notification, Space, Table, Tag } from 'antd'
 import { useEffect, useState } from 'react'
+import { currency } from '@/utils/helpers'
 
 const nunito = Nunito({ subsets: ['latin'] })
 
@@ -15,19 +16,7 @@ const columns = [
     title: 'Amount',
     dataIndex: 'amount',
     key: 'amount',
-    render: (amount: any) => {
-      return (
-        <InputNumber
-          style={{ width: '150px', paddingLeft: 0 }}
-          defaultValue={parseFloat(amount)}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
-      )
-    },
+    render: (amount: any) => <>{currency(amount)}</>,
   },
   {
     title: 'Status',
@@ -57,7 +46,7 @@ const WithdrawalRequests = ({ token, title }: IProps) => {
     data: [],
   })
   const [loading, setLoading] = useState(false)
-  const [day, setDay] = useState(500)
+  const [day, setDay] = useState(1)
 
   const iniWithdraw = async (page: number) => {
     setLoading(true)
@@ -90,8 +79,8 @@ const WithdrawalRequests = ({ token, title }: IProps) => {
             <Space wrap>
               <Button
                 size="small"
-                type={day === 500 ? 'primary' : 'default'}
-                onClick={() => setDay(500)}
+                type={day === 1 ? 'primary' : 'default'}
+                onClick={() => setDay(1)}
               >
                 Today
               </Button>

@@ -100,6 +100,13 @@ const DataNewUsers = ({ token, title }: IProps) => {
               pageSize: 5,
               showSizeChanger: false,
             }}
+            onRow={(record, rowIndex) => {
+              return {
+                onClick: () => {
+                  console.log(record)
+                },
+              }
+            }}
           />
         </div>
       </div>
