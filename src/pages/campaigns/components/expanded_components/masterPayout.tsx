@@ -1,3 +1,5 @@
+import { Api } from '@/api/api'
+import { currency } from '@/utils/helpers'
 import {
   DeleteOutlined,
   EditOutlined,
@@ -6,6 +8,7 @@ import {
   PlusCircleTwoTone,
   PlusOutlined,
   PlusSquareOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import { Button, InputNumber, Space, Table, Tooltip } from 'antd'
 import { useEffect, useState } from 'react'
@@ -46,19 +49,41 @@ const dataSource = [
   },
 ]
 
-const MasterPayout = () => {
+interface CProps {
+  campaign?: any
+  user: any
+}
+
+const MasterPayout = ({ campaign, user }: CProps) => {
   const [loading, setLoading] = useState(false)
   const [masterPayouts, setMasterPayouts] = useState<any>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [formAction, setFormAction] = useState('')
   const [masterPayout, setMasterPayout] = useState({})
 
-  useEffect(() => {
+  const initMasterPayout = async () => {
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      setMasterPayouts(dataSource)
-    }, 2000)
+
+    await Api.get(
+      `master-payouts/campaign/${campaign.id}`,
+      user.token,
+      {},
+      user.id
+    )
+      .then((res: any) => {
+        console.log(res)
+        setMasterPayouts(res.data)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
+
+  useEffect(() => {
+    initMasterPayout()
   }, [])
 
   const onOpenForm = (action: string, data: any) => {
@@ -90,8 +115,8 @@ const MasterPayout = () => {
     },
     {
       title: 'Due Date',
-      dataIndex: 'due_date',
-      key: 'due_date',
+      dataIndex: 'date',
+      key: 'date',
     },
     {
       title: 'Status',
@@ -102,17 +127,7 @@ const MasterPayout = () => {
       title: 'Payout Amount',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number) => (
-        <InputNumber
-          style={{ width: '100%' }}
-          defaultValue={amount}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
-      ),
+      render: (amount: number) => currency(amount),
     },
     {
       title: '',
@@ -140,6 +155,7 @@ const MasterPayout = () => {
     <>
       <Table
         bordered
+        rowKey="id"
         dataSource={masterPayouts}
         columns={columns}
         loading={loading}
@@ -151,10 +167,21 @@ const MasterPayout = () => {
                 History Update
               </Button>
               <Button
+                size="small"
+                icon={<ReloadOutlined />}
+                onClick={() => initMasterPayout()}
+              ></Button>
+              <Button
                 type="primary"
                 size="small"
                 icon={<PlusOutlined />}
-                onClick={() => onOpenForm('create', {})}
+                onClick={() =>
+                  onOpenForm('create', {
+                    campaign_id: campaign.id,
+                    return: campaign.return,
+                    date: null,
+                  })
+                }
               ></Button>
             </Space>
           </Space>
@@ -167,6 +194,7 @@ const MasterPayout = () => {
         handleHide={() => setIsFormOpen(false)}
         action={formAction}
         master_payout={masterPayout}
+        token={user.token}
       />
     </>
   )

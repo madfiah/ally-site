@@ -12,16 +12,19 @@ import {
 import { Nunito } from '@next/font/google'
 import {
   Button,
+  DatePicker,
   Dropdown,
   Input,
   MenuProps,
   notification,
+  Select,
   Space,
   Table,
   Tag,
   Tooltip,
   Typography,
 } from 'antd'
+import moment from 'moment'
 
 import { getSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
@@ -78,11 +81,11 @@ const columns = [
   },
   {
     title: 'Current funding ($)',
-    dataIndex: 'investments_count',
-    key: 'investments_count',
-    render: (investments_count: any) => (
+    dataIndex: 'currenct_invest',
+    key: 'currenct_invest',
+    render: (currenct_invest: any) => (
       <div className="text-end">
-        {investments_count ? currency(parseFloat(investments_count)) : '$0'}
+        {currenct_invest ? currency(parseFloat(currenct_invest)) : '$0'}
       </div>
     ),
   },
@@ -165,9 +168,16 @@ const Index = ({ user }: IProps) => {
   const [campaigns, setCampaigns] = useState<any>({
     data: [],
   })
+  const [filter, setFilter] = useState({
+    campaign_name: '',
+    type: null,
+    release_date: '',
+  })
+  const [loading, setLoading] = useState(false)
 
-  const initCampaigns = async () => {
-    Api.get('campaign?limit=25', user.token, {}, user.id)
+  const initCampaigns = async (params: any) => {
+    setLoading(true)
+    Api.get('campaign', user.token, params, user.id)
       .then((res: any) => {
         console.log(res.data)
         setCampaigns(res.data)
@@ -184,15 +194,31 @@ const Index = ({ user }: IProps) => {
           notification.error({ message: err.message })
         }
       })
+      .finally(() => setLoading(false))
   }
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    initCampaigns()
-  }, [])
+    initCampaigns({
+      ...filter,
+      per_page: 10,
+    })
+  }, [filter])
 
   const onSearch = (value: string) => {
-    console.log(value)
+    setFilter({
+      ...filter,
+      campaign_name: value,
+    })
   }
+
+  const handleTableChange = (pagination: any) => {
+    initCampaigns({
+      ...filter,
+      per_page: pagination.pageSize,
+      page: pagination.current,
+    })
+  }
+
   return (
     <>
       <div className="kb-card card-shadow">
@@ -200,34 +226,80 @@ const Index = ({ user }: IProps) => {
           <Space className="space-between">
             <p className={nunito.className}>Campaigns</p>
             <Space wrap>
-              <Search
-                placeholder="Search campaign"
-                onSearch={onSearch}
-                style={{ width: 200 }}
-              />
               <Tooltip title="Create new campaign" placement={`topRight`}>
                 <Link href={'/campaigns/new'}>
-                  <Button type="dashed">
-                    <PlusOutlined />
+                  <Button>
+                    <PlusOutlined /> Create
                   </Button>
                 </Link>
               </Tooltip>
             </Space>
           </Space>
+          <div className="mt-1">
+            <Space>
+              <Search
+                allowClear
+                placeholder="Search by name"
+                onSearch={onSearch}
+                style={{ width: 250 }}
+              />
+              <Select
+                allowClear
+                placeholder="Select type"
+                style={{ width: 150 }}
+                options={[
+                  { value: 'SME', label: 'SME' },
+                  { value: 'Donation', label: 'Donation' },
+                ]}
+                onChange={(vl) =>
+                  setFilter({
+                    ...filter,
+                    type: vl,
+                  })
+                }
+              />
+              <DatePicker
+                placeholder="Release date"
+                format={'YYYY-MM-DD'}
+                style={{ width: '100%' }}
+                onChange={(e: any) => {
+                  if (e) {
+                    setFilter({
+                      ...filter,
+                      release_date: moment(e.$d).format('YYYY-MM-DD'),
+                    })
+                  } else {
+                    setFilter({
+                      ...filter,
+                      release_date: '',
+                    })
+                  }
+                }}
+              />
+            </Space>
+          </div>
         </div>
         <div className="card-body">
           <Table
             bordered
             rowKey="id"
+            loading={loading}
             dataSource={campaigns.data}
             columns={columns}
+            onChange={handleTableChange}
             expandable={{
               expandedRowRender: (record) => (
-                <ExpandedCampaign campaign={record} />
+                <ExpandedCampaign campaign={record} user={user} />
               ),
               rowExpandable: (record) => record.id !== 'Not Expandable',
             }}
             scroll={{ x: 800 }}
+            pagination={{
+              total: campaigns?.total,
+              current: campaigns?.current_page,
+              pageSize: 10,
+              showSizeChanger: false,
+            }}
           />
         </div>
       </div>

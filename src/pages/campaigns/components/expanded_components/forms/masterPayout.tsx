@@ -1,3 +1,4 @@
+import { Api } from '@/api/api'
 import {
   Button,
   DatePicker,
@@ -5,6 +6,7 @@ import {
   Input,
   InputNumber,
   Modal,
+  notification,
   Select,
   Space,
 } from 'antd'
@@ -16,6 +18,7 @@ interface Props {
   handleHide: any
   action: string
   master_payout?: any
+  token: string
 }
 
 const FormMasterPayout = ({
@@ -23,9 +26,11 @@ const FormMasterPayout = ({
   handleHide,
   action,
   master_payout,
+  token,
 }: Props) => {
   const [form] = Form.useForm()
-  const [data, setData] = useState({})
+  const [data, setData] = useState<any>()
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!isShow) {
@@ -38,6 +43,19 @@ const FormMasterPayout = ({
 
   const onFinish = (values: any) => {
     console.log('Success:', values)
+    const apiAction =
+      action === 'create'
+        ? `master-payouts/create/campaign/${data.campaign_id}`
+        : `master-payouts/update/${data.id}`
+
+    Api.post(apiAction, token, null, data)
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => {
+        console.log(err)
+        notification.error(err.data.message)
+      })
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -70,7 +88,7 @@ const FormMasterPayout = ({
           name="percentage"
           rules={[{ required: true, message: 'Please input percentage!' }]}
         >
-          <Input placeholder="Enter the percentage" />
+          <Input placeholder="Enter percentage" />
         </Form.Item>
 
         <Form.Item
@@ -78,21 +96,7 @@ const FormMasterPayout = ({
           name="return"
           rules={[{ required: true, message: 'Please input project return!' }]}
         >
-          <Input placeholder="Enter the return" />
-        </Form.Item>
-
-        <Form.Item
-          label="Amount"
-          name="amount"
-          rules={[{ required: true, message: 'Please input amount!' }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            formatter={(value) =>
-              `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-            }
-            placeholder="Enter the amount"
-          />
+          <Input placeholder="Enter return" />
         </Form.Item>
 
         <Form.Item
@@ -113,7 +117,7 @@ const FormMasterPayout = ({
 
         <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
           <Space>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
             <Button onClick={() => form.resetFields()}>Reset</Button>

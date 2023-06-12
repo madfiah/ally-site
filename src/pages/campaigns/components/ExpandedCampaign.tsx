@@ -5,9 +5,10 @@ import MasterPayout from './expanded_components/masterPayout'
 
 interface CProps {
   campaign?: any
+  user: any
 }
 
-const ExpandedCampaign = ({ campaign }: CProps) => {
+const ExpandedCampaign = ({ campaign, user }: CProps) => {
   const onChange = (key: string) => {
     console.log(key)
   }
@@ -16,12 +17,12 @@ const ExpandedCampaign = ({ campaign }: CProps) => {
     {
       key: '1',
       label: `Detail Campaign`,
-      children: <DetailCampaign />,
+      children: <DetailCampaign campaign={campaign} user={user} />,
     },
     {
       key: '2',
       label: `Master Payout`,
-      children: <MasterPayout />,
+      children: <MasterPayout campaign={campaign} user={user} />,
     },
     {
       key: '3',

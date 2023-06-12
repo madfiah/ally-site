@@ -4,18 +4,28 @@ import {
   NotificationOutlined,
 } from '@ant-design/icons'
 import { Button, Col, List, Row, Space, Tooltip } from 'antd'
+import { currency } from '@/utils/helpers'
 
-const DetailCampaign = () => {
+interface IProps {
+  campaign: any
+  user: any
+}
+
+const DetailCampaign = ({ campaign, user }: IProps) => {
   const data = [
-    { title: 'Company Name', content: 'PT ABC' },
-    { title: 'Industry', content: 'Fintech' },
-    { title: 'Project Type', content: 'SME Crowdfunding' },
-    { title: 'SME Sub Type', content: 'INVOICE FINANCING' },
-    { title: 'Risk', content: 'A (Good)' },
-    { title: 'Minimum Invest', content: '$200' },
-    { title: 'Project Return', content: '7.40%' },
-    { title: 'Project Tenor', content: '7 months' },
+    { title: 'Company Name', content: campaign.country },
+    { title: 'Industry', content: campaign.industry },
+    { title: 'Project Type', content: campaign.type.toUpperCase() },
+    { title: 'SME Sub Type', content: campaign.subtype },
+    { title: 'Risk', content: campaign.risk },
+    {
+      title: 'Minimum Invest',
+      content: currency(campaign.minimum_invest_amount),
+    },
+    { title: 'Project Return', content: campaign.return + '%' },
+    { title: 'Project Tenor', content: campaign.tenor },
   ]
+
   return (
     <>
       <Row gutter={30}>
