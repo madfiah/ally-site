@@ -10,8 +10,15 @@ import {
   Select,
   Space,
 } from 'antd'
-import moment from 'moment'
 import { useEffect, useState } from 'react'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import weekday from 'dayjs/plugin/weekday'
+import localeData from 'dayjs/plugin/localeData'
+
+// dayjs.extend(customParseFormat)
+dayjs.extend(weekday)
+dayjs.extend(localeData)
 
 interface Props {
   isShow: boolean
@@ -19,6 +26,7 @@ interface Props {
   action: string
   master_payout?: any
   token: string
+  reloadData: any
 }
 
 const FormMasterPayout = ({
@@ -27,9 +35,11 @@ const FormMasterPayout = ({
   action,
   master_payout,
   token,
+  reloadData,
 }: Props) => {
   const [form] = Form.useForm()
   const [data, setData] = useState<any>()
+  const [errors, setErrors] = useState<any>()
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -37,24 +47,47 @@ const FormMasterPayout = ({
       setData({})
       form.resetFields()
     } else {
-      form.setFieldsValue(master_payout)
+      const mast = {
+        ...master_payout,
+        due_date: master_payout.date ? dayjs(master_payout.date) : null,
+      }
+      setData(mast)
+      form.setFieldsValue(mast)
     }
   }, [form, isShow, master_payout])
 
   const onFinish = (values: any) => {
     console.log('Success:', values)
+    setLoading(true)
     const apiAction =
       action === 'create'
-        ? `master-payouts/create/campaign/${data.campaign_id}`
-        : `master-payouts/update/${data.id}`
+        ? `master-payouts/create/campaign/${master_payout.campaign_id}`
+        : `master-payouts/update/${master_payout.id}`
 
-    Api.post(apiAction, token, null, data)
-      .then((res) => {
-        console.log(res)
+    const params = {
+      ...values,
+      date: dayjs(values.due_date).format('YYYY-MM-DD'),
+    }
+
+    Api.post(apiAction, token, null, params)
+      .then((res: any) => {
+        handleHide()
+        setTimeout(() => {
+          reloadData()
+        }, 300)
+        notification.success({
+          message: res.message,
+        })
       })
       .catch((err) => {
         console.log(err)
-        notification.error(err.data.message)
+        notification.error({
+          message: err.data.message,
+        })
+        setErrors(err.data.data)
+      })
+      .finally(() => {
+        setLoading(false)
       })
   }
 
@@ -87,6 +120,8 @@ const FormMasterPayout = ({
           label="Percentage"
           name="percentage"
           rules={[{ required: true, message: 'Please input percentage!' }]}
+          validateStatus={errors?.percentage.length > 0 ? 'error' : ''}
+          help={errors?.percentage[0]}
         >
           <Input placeholder="Enter percentage" />
         </Form.Item>
@@ -95,23 +130,33 @@ const FormMasterPayout = ({
           label="Project Return"
           name="return"
           rules={[{ required: true, message: 'Please input project return!' }]}
+          validateStatus={errors?.return.length > 0 ? 'error' : ''}
+          help={errors?.return[0]}
         >
-          <Input placeholder="Enter return" />
+          <Input placeholder="Enter return" disabled />
         </Form.Item>
 
         <Form.Item
+          required
           label="Due Date"
-          name="due_date"
-          getValueProps={(i: string) => ({ value: moment(i) })}
+          name={'due_date'}
+          validateStatus={errors?.date.length > 0 ? 'error' : ''}
+          help={errors?.due_date[0]}
         >
           <DatePicker format={'YYYY-MM-DD'} style={{ width: '100%' }} />
         </Form.Item>
 
-        <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+        <Form.Item
+          name="status"
+          label="Status"
+          rules={[{ required: true }]}
+          validateStatus={errors?.status.length > 0 ? 'error' : ''}
+          help={errors?.status[0]}
+        >
           <Select placeholder="Select status" allowClear>
-            <Select.Option value="on going">on going</Select.Option>
-            <Select.Option value="delay">delay</Select.Option>
-            <Select.Option value="paid">paid</Select.Option>
+            <Select.Option value="on-going">On-going</Select.Option>
+            <Select.Option value="delay">Delay</Select.Option>
+            <Select.Option value="paid">Paid</Select.Option>
           </Select>
         </Form.Item>
 

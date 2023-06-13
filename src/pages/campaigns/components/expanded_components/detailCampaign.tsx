@@ -13,17 +13,17 @@ interface IProps {
 
 const DetailCampaign = ({ campaign, user }: IProps) => {
   const data = [
-    { title: 'Company Name', content: campaign.country },
-    { title: 'Industry', content: campaign.industry },
-    { title: 'Project Type', content: campaign.type.toUpperCase() },
-    { title: 'SME Sub Type', content: campaign.subtype },
-    { title: 'Risk', content: campaign.risk },
+    { title: 'Company Name', content: campaign?.country },
+    { title: 'Industry', content: campaign?.industry },
+    { title: 'Project Type', content: campaign?.type.toUpperCase() },
+    { title: 'SME Sub Type', content: campaign?.subtype },
+    { title: 'Risk', content: campaign?.risk },
     {
       title: 'Minimum Invest',
-      content: currency(campaign.minimum_invest_amount),
+      content: currency(campaign?.minimum_invest_amount),
     },
-    { title: 'Project Return', content: campaign.return + '%' },
-    { title: 'Project Tenor', content: campaign.tenor },
+    { title: 'Project Return', content: campaign?.return + '%' },
+    { title: 'Project Tenor', content: campaign?.tenor },
   ]
 
   return (

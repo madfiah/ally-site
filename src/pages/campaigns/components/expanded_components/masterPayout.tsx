@@ -10,7 +10,15 @@ import {
   PlusSquareOutlined,
   ReloadOutlined,
 } from '@ant-design/icons'
-import { Button, InputNumber, Space, Table, Tooltip } from 'antd'
+import {
+  Button,
+  InputNumber,
+  notification,
+  Popconfirm,
+  Space,
+  Table,
+  Tooltip,
+} from 'antd'
 import { useEffect, useState } from 'react'
 import FormMasterPayout from './forms/masterPayout'
 
@@ -66,7 +74,7 @@ const MasterPayout = ({ campaign, user }: CProps) => {
 
     await Api.get(
       `master-payouts/campaign/${campaign.id}`,
-      user.token,
+      user?.token,
       {},
       user.id
     )
@@ -92,15 +100,20 @@ const MasterPayout = ({ campaign, user }: CProps) => {
     setIsFormOpen(true)
   }
 
+  const confirmDelete = (e: React.MouseEvent<HTMLElement>, data: any) => {
+    console.log(data)
+    Api.post(`master-payouts/delete/${data.id}`, user?.token, user.id, {})
+      .then((res: any) => {
+        notification.success({ message: res.message })
+        initMasterPayout()
+      })
+      .catch((err: any) => {
+        console.log(err)
+        notification.error({ message: err.message })
+      })
+  }
+
   const columns = [
-    {
-      title: 'No.',
-      dataIndex: 'key',
-      key: 'key',
-      render: (key: any, data: any, idx: number) => {
-        return <>{idx + 1}</>
-      },
-    },
     {
       title: 'Percentage',
       dataIndex: 'percentage',
@@ -142,9 +155,18 @@ const MasterPayout = ({ campaign, user }: CProps) => {
             </Button>
           </Tooltip>
           <Tooltip title="Delete master payout">
-            <Button size="small" danger>
-              <DeleteOutlined />
-            </Button>
+            <Popconfirm
+              placement="bottomRight"
+              title="Delete master payout"
+              description="Are you sure to delete this data?"
+              onConfirm={(e: any) => confirmDelete(e, data)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button size="small" danger>
+                <DeleteOutlined />
+              </Button>
+            </Popconfirm>
           </Tooltip>
         </Space>
       ),
@@ -163,14 +185,16 @@ const MasterPayout = ({ campaign, user }: CProps) => {
           <Space className="space-between">
             <h4 className="m-0">Master Payout</h4>
             <Space>
-              <Button size="small" icon={<HistoryOutlined />}>
+              {/* <Button size="small" icon={<HistoryOutlined />}>
                 History Update
-              </Button>
+              </Button> */}
               <Button
                 size="small"
                 icon={<ReloadOutlined />}
                 onClick={() => initMasterPayout()}
-              ></Button>
+              >
+                Refresh data
+              </Button>
               <Button
                 type="primary"
                 size="small"
@@ -187,6 +211,10 @@ const MasterPayout = ({ campaign, user }: CProps) => {
           </Space>
         )}
         scroll={{ x: 800 }}
+        pagination={{
+          pageSize: 3,
+          showSizeChanger: false,
+        }}
       />
 
       <FormMasterPayout
@@ -194,7 +222,8 @@ const MasterPayout = ({ campaign, user }: CProps) => {
         handleHide={() => setIsFormOpen(false)}
         action={formAction}
         master_payout={masterPayout}
-        token={user.token}
+        token={user?.token}
+        reloadData={() => initMasterPayout()}
       />
     </>
   )
