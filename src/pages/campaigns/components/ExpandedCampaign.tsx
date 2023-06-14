@@ -27,7 +27,7 @@ const ExpandedCampaign = ({ campaign, user }: CProps) => {
     {
       key: '3',
       label: `Campaign Updates`,
-      children: <CampaignUpdates />,
+      children: <CampaignUpdates campaign={campaign} user={user} />,
     },
   ]
 

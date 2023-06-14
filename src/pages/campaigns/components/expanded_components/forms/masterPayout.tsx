@@ -57,7 +57,6 @@ const FormMasterPayout = ({
   }, [form, isShow, master_payout])
 
   const onFinish = (values: any) => {
-    console.log('Success:', values)
     setLoading(true)
     const apiAction =
       action === 'create'
@@ -91,9 +90,6 @@ const FormMasterPayout = ({
       })
   }
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo)
-  }
   return (
     <Modal
       title={
@@ -112,7 +108,6 @@ const FormMasterPayout = ({
         wrapperCol={{ span: 18 }}
         style={{ maxWidth: 600 }}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         className="mt-2"
       >

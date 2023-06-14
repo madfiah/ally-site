@@ -22,41 +22,6 @@ import {
 import { useEffect, useState } from 'react'
 import FormMasterPayout from './forms/masterPayout'
 
-const dataSource = [
-  {
-    key: '1',
-    percentage: '25',
-    return: '7.40',
-    due_date: '4 April 2022',
-    status: 'paid',
-    amount: '18540.4',
-  },
-  {
-    key: '2',
-    percentage: '25',
-    return: '7.40',
-    due_date: '4 Mei 2022',
-    status: 'delay',
-    amount: '18540.4',
-  },
-  {
-    key: '3',
-    percentage: '25',
-    return: '7.40',
-    due_date: '4 June 2022',
-    status: 'on going',
-    amount: '18540.4',
-  },
-  {
-    key: '4',
-    percentage: '25',
-    return: '7.40',
-    due_date: '4 Jully 2022',
-    status: 'on going',
-    amount: '18540.4',
-  },
-]
-
 interface CProps {
   campaign?: any
   user: any
