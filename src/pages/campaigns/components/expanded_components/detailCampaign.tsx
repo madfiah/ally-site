@@ -5,6 +5,7 @@ import {
 } from '@ant-design/icons'
 import { Button, Col, List, Row, Space, Tooltip } from 'antd'
 import { currency } from '@/utils/helpers'
+import Link from 'next/link'
 
 interface IProps {
   campaign: any
@@ -63,9 +64,11 @@ const DetailCampaign = ({ campaign, user }: IProps) => {
       <Row className="my-2">
         <Col span={24}>
           <Space>
-            <Button type="primary" icon={<EditOutlined />} size={`small`}>
-              Edit Campaign
-            </Button>
+            <Link href={`/campaigns/edit/${campaign.id}`}>
+              <Button type="primary" icon={<EditOutlined />} size={`small`}>
+                Edit Campaign
+              </Button>
+            </Link>
             <Button icon={<EyeOutlined />} size={`small`}>
               Preview Campaign
             </Button>
