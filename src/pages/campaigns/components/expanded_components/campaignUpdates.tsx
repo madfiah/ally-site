@@ -142,7 +142,7 @@ const CampaignUpdates = ({ campaign, user }: Iprops) => {
 
   const confirmDelete = (e: React.MouseEvent<HTMLElement>, data: any) => {
     setLoading(true)
-    Api.post(`campaign-updates/delete/${data.id}`, user?.token, user.id, {})
+    Api.post(`campaign-updates/delete/${data?.id}`, user?.token, user?.id, {})
       .then((res: any) => {
         notification.success({ message: res.message })
         initData()
@@ -176,7 +176,7 @@ const CampaignUpdates = ({ campaign, user }: Iprops) => {
                 type="primary"
                 size="small"
                 icon={<PlusOutlined />}
-                onClick={() => onOpenForm('create', {})}
+                onClick={() => onOpenForm('create', { images: [] })}
               ></Button>
             </Space>
           </Space>
@@ -210,6 +210,7 @@ const CampaignUpdates = ({ campaign, user }: Iprops) => {
         campaign_update={campaignUpdate}
         user={user}
         campaign={campaign}
+        reloadData={() => initData()}
       />
     </>
   )

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import type { UploadFile } from 'antd/es/upload/interface'
 import { Api } from '@/api/api'
 
+import type { UploadProps } from 'antd'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 interface Props {
@@ -13,21 +15,10 @@ interface Props {
   campaign: any
   campaign_update?: any
   user: any
+  reloadData: any
 }
 
 const { TextArea } = Input
-
-const fileList: UploadFile[] = []
-
-interface req {
-  file: any
-  onSuccess: any
-}
-const customRequest = ({ file, onSuccess }: req) => {
-  setTimeout(() => {
-    onSuccess('ok')
-  }, 0)
-}
 
 const FormCampaignUpdate = ({
   isShow,
@@ -36,16 +27,43 @@ const FormCampaignUpdate = ({
   campaign,
   campaign_update,
   user,
+  reloadData,
 }: Props) => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [images, setImages] = useState<any>([])
+  const [errors, setErrors] = useState<any>()
+  const [fileList, setFileList] = useState<UploadFile[]>([])
+
+  const initFileList = () => {
+    if (campaign_update.images) {
+      let files: any = []
+
+      console.log(campaign_update.images)
+      if (typeof campaign_update.images === 'object') {
+        campaign_update.images.map((image: string, idx: number) => {
+          let item = {
+            uid: Math.floor(1000 + Math.random() * 9000),
+            name: `file-${idx}`,
+            status: 'done',
+            url: image,
+          }
+
+          files.push(item)
+        })
+      }
+
+      setFileList(files)
+    }
+  }
 
   useEffect(() => {
     if (!isShow) {
       form.resetFields()
     } else {
       form.setFieldsValue(campaign_update)
+      setImages(campaign_update.images)
+      initFileList()
     }
   }, [form, isShow, campaign_update])
 
@@ -60,26 +78,77 @@ const FormCampaignUpdate = ({
 
     const apiUrl =
       action === 'create'
-        ? `campaign-updates/create/${campaign.id}`
-        : `campaign-updates/update/${campaign_update.id}`
+        ? `campaign-updates/create/${campaign?.id}`
+        : `campaign-updates/update/${campaign_update?.id}`
 
-    Api.post(apiUrl, user.token, user.id, params)
+    Api.post(apiUrl, user?.token, user?.id, params)
       .then((res: any) => {
-        console.log(res)
+        handleHide()
+
+        setTimeout(() => {
+          reloadData()
+        }, 300)
+
+        notification.success({
+          message: res.message,
+        })
       })
       .catch((err) => {
         console.log(err)
+        notification.error({
+          message: err.data.message,
+        })
+        setErrors(err.data.data)
       })
       .finally(() => setLoading(false))
   }
 
   const onChange = (info: any) => {
     if (info.file.status === 'done') {
-      console.log(info.file)
+      // let newFileList = [...info.fileList]
+
+      // // 1. Limit the number of uploaded files
+      // // Only to show two recent uploaded files, and old ones will be replaced by the new
+      // // newFileList = newFileList.slice(-2)
+
+      // // 2. Read from response and show file link
+      // newFileList = newFileList.map((file) => {
+      //   if (file.response) {
+      //     // Component will show file.url as link
+      //     file.url = file.response.url
+      //   }
+      //   return file
+      // })
+
+      // console.log(newFileList)
+
+      // setFileList(newFileList)
       setImages([...images, info.file.response.data.file_path])
     } else if (info.file.status === 'error') {
       notification.error({ message: `file upload failed.` })
     }
+  }
+
+  const handleChange: UploadProps['onChange'] = (info) => {
+    let newFileList = [...info.fileList]
+    console.log('File Lists :', newFileList)
+
+    // 1. Limit the number of uploaded files
+    // Only to show two recent uploaded files, and old ones will be replaced by the new
+    // newFileList = newFileList.slice(-2)
+
+    // 2. Read from response and show file link
+    newFileList = newFileList.map((file) => {
+      if (file.response) {
+        // Component will show file.url as link
+        file.url = file.response.data.file_path
+
+        setImages([...images, info.file.response.data.file_path])
+      }
+      return file
+    })
+
+    setFileList(newFileList)
   }
 
   return (
@@ -108,6 +177,8 @@ const FormCampaignUpdate = ({
           label="Title"
           name="title"
           rules={[{ required: true, message: 'Please input the title!' }]}
+          validateStatus={errors?.title.length > 0 ? 'error' : ''}
+          help={errors?.title[0]}
         >
           <Input placeholder="Enter the percentage" />
         </Form.Item>
@@ -117,35 +188,40 @@ const FormCampaignUpdate = ({
           label="Content"
           name="content"
           rules={[{ required: true, message: 'Please input the content!' }]}
+          validateStatus={errors?.description.length > 0 ? 'error' : ''}
+          help={errors?.description[0]}
         >
           <TextArea rows={12} />
         </Form.Item>
 
-        <Form.Item
-          label="Files"
-          // name="images"
-          // rules={[{ required: true, message: 'Please input the content!' }]}
-        >
-          <Upload
-            action={`${API_URL}/campaign-updates/upload/${campaign.id}`}
-            onChange={onChange}
-            listType="picture-card"
-            defaultFileList={[...fileList]}
+        {campaign_update && (
+          <Form.Item
+            label="Files"
+            // name="images"
+            // rules={[{ required: true, message: 'Please input the content!' }]}
           >
-            {/* <Button icon={<UploadOutlined />}>Upload</Button> */}
-            <div>
-              <PlusOutlined />
-              <div style={{ marginTop: 8 }}>Upload</div>
-            </div>
-          </Upload>
-        </Form.Item>
+            <Upload
+              multiple={true}
+              action={`${API_URL}/campaign-updates/upload/${campaign?.id}`}
+              onChange={handleChange}
+              listType="picture-card"
+              fileList={fileList}
+            >
+              {/* <Button icon={<UploadOutlined />}>Upload</Button> */}
+              <div>
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>Upload</div>
+              </div>
+            </Upload>
+          </Form.Item>
+        )}
 
         <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
           <Space>
             <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
-            <Button onClick={() => form.resetFields()}>Reset</Button>
+            <Button onClick={handleHide}>Close</Button>
           </Space>
         </Form.Item>
       </Form>
