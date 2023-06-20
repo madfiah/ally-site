@@ -26,16 +26,24 @@ import CampaignGallery from '../components/galleries'
 import PdfCampaign from '../components/pdf'
 import { Editor } from '@tinymce/tinymce-react'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Api } from '@/api/api'
 import { getSession } from 'next-auth/react'
 import dayjs from 'dayjs'
+import type { UploadFile } from 'antd/es/upload/interface'
+import type { UploadProps } from 'antd'
 
 import weekday from 'dayjs/plugin/weekday'
+import timezone from 'dayjs/plugin/timezone'
 import localeData from 'dayjs/plugin/localeData'
 
 dayjs.extend(weekday)
 dayjs.extend(localeData)
+dayjs.extend(timezone)
+
+dayjs.tz.setDefault('Asia/Singapore')
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const nunito = Nunito({ subsets: ['latin'] })
 const { Option } = Select
@@ -45,6 +53,7 @@ interface IProps {
 }
 
 const NewCampaign = ({ user }: IProps) => {
+  const editorRef = useRef<any>(null)
   const router = useRouter()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
@@ -52,12 +61,18 @@ const NewCampaign = ({ user }: IProps) => {
     show: false,
     message: '',
   })
-  const [campaign, setCampaign] = useState<any>({})
+  const [campaign, setCampaign] = useState<any>(null)
+  const [description, setDescription] = useState('')
+  const [logo, setLogo] = useState<UploadFile[]>([])
+  const [cover, setCover] = useState<UploadFile[]>([])
 
-  const initData = (acronim: any) => {
+  const acronim = router.query.acronim
+
+  const loadCampaign = (acronim: any) => {
+    console.log('Load campaign data')
+    setLoading(true)
     Api.get(`campaign/detail/${acronim}`, user.token)
       .then((res: any) => {
-        console.log(res)
         const params = {
           ...res.data,
           release_datetime: res.data.release_datetime
@@ -66,8 +81,40 @@ const NewCampaign = ({ user }: IProps) => {
           expiry_datetime: res.data.expiry_datetime
             ? dayjs(res.data.expiry_datetime)
             : null,
+          logo: res.data.logo === null ? '' : res.data.logo,
         }
         form.setFieldsValue(params)
+        setDescription(params.description)
+        setCampaign(params)
+
+        // set logo & cover
+        if (params.logo !== null) {
+          let files: any = []
+
+          let itemLogo = {
+            uid: Math.floor(1000 + Math.random() * 9000),
+            name: `file-logo`,
+            status: 'done',
+            url: params.logo,
+          }
+
+          files.push(itemLogo)
+          setLogo(files)
+        }
+
+        if (params.cover_image !== null) {
+          let files: any = []
+
+          let item = {
+            uid: Math.floor(1000 + Math.random() * 9000),
+            name: `file-logo`,
+            status: 'done',
+            url: params.cover_image,
+          }
+
+          files.push(item)
+          setCover(files)
+        }
       })
       .catch((err) => {
         console.log(err)
@@ -80,27 +127,51 @@ const NewCampaign = ({ user }: IProps) => {
   }
 
   useEffect(() => {
-    setLoading(true)
-    // console.log(router.query.acronim)
-    initData(router.query.acronim)
+    loadCampaign(acronim)
   }, [])
 
   const onFinish = (values: any) => {
-    console.log('Success:', values)
-  }
+    setLoading(true)
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo)
+    Api.post(`campaign/update/${acronim}`, user.token, user.id, {
+      ...values,
+      description,
+    })
+      .then((res: any) => {
+        notification.success({ message: 'Success to update campaign' })
+        setCampaign(null)
+        setTimeout(() => {
+          loadCampaign(acronim)
+        }, 500)
+      })
+      .catch((err: any) => {
+        notification.error({ message: 'error' })
+      })
   }
 
   const handleEditorChange = (content: any, editor: any) => {
-    console.log('Content was updated:', content)
+    // console.log('Content was updated:', content)
+    setDescription(content)
+  }
+
+  const handleChangeLogo: UploadProps['onChange'] = ({ file, fileList }) => {
+    // let newFileList = [...info.fileList]
+    if (file.status === 'done') {
+      form.setFieldValue('logo', file.response.data.file_path)
+    }
+  }
+
+  const handleChangeCover: UploadProps['onChange'] = ({ file, fileList }) => {
+    // let newFileList = [...info.fileList]
+    if (file.status === 'done') {
+      form.setFieldValue('cover_image', file.response.data.file_path)
+    }
   }
 
   const FormCampaign = () => {
     return (
       <>
-        {loading ? (
+        {loading && campaign === null ? (
           <div className="text-center my-5">
             <LoadingOutlined style={{ fontSize: '2.5rem' }} />
             <h3>Loading..</h3>
@@ -117,7 +188,6 @@ const NewCampaign = ({ user }: IProps) => {
                 form={form}
                 name="basic"
                 onFinish={onFinish}
-                onFinishFailed={onFinishFailed}
                 autoComplete="off"
                 layout="vertical"
               >
@@ -251,13 +321,13 @@ const NewCampaign = ({ user }: IProps) => {
                   <Col span={12}>
                     <Form.Item
                       label="SME Sub Type"
-                      name="sub_type"
+                      name="subtype"
                       rules={[
-                        { required: true, message: 'Please select sub type!' },
+                        { required: true, message: 'Please select subtype!' },
                       ]}
                     >
                       <Select
-                        placeholder="Select SME sub type"
+                        placeholder="Select SME subtype"
                         // onChange={onGenderChange}
                         allowClear
                       >
@@ -275,19 +345,16 @@ const NewCampaign = ({ user }: IProps) => {
                   <Col span={6}>
                     <Form.Item
                       label="Tenor"
-                      name="return"
+                      name="tenor"
                       rules={[
                         {
                           required: true,
                           message: 'Please enter the tenor',
                         },
                       ]}
+                      getValueProps={(i) => ({ value: parseFloat(i) })}
                     >
-                      <InputNumber
-                        style={{ width: '100%' }}
-                        defaultValue={0}
-                        stringMode
-                      />
+                      <InputNumber style={{ width: '100%' }} />
                     </Form.Item>
                   </Col>
                   <Col span={9}>
@@ -300,6 +367,7 @@ const NewCampaign = ({ user }: IProps) => {
                           message: 'Please enter project return',
                         },
                       ]}
+                      getValueProps={(i) => ({ value: parseFloat(i) })}
                     >
                       <InputNumber
                         style={{ width: '100%' }}
@@ -423,8 +491,8 @@ const NewCampaign = ({ user }: IProps) => {
                         // onChange={onGenderChange}
                         allowClear
                       >
-                        <Option value="true">Online</Option>
-                        <Option value="false">Offline</Option>
+                        <Option value={true}>Online</Option>
+                        <Option value={false}>Offline</Option>
                       </Select>
                     </Form.Item>
                   </Col>
@@ -444,15 +512,15 @@ const NewCampaign = ({ user }: IProps) => {
                         // onChange={onGenderChange}
                         allowClear
                       >
-                        <Option value="true">Active</Option>
-                        <Option value="false">Disable</Option>
+                        <Option value={true}>Active</Option>
+                        <Option value={false}>Disable</Option>
                       </Select>
                     </Form.Item>
                   </Col>
                   <Col span={8}>
                     <Form.Item
                       label="Email Requirements"
-                      name="email_requirement"
+                      name="requirement_reminder"
                       rules={[
                         {
                           required: true,
@@ -465,8 +533,8 @@ const NewCampaign = ({ user }: IProps) => {
                         // onChange={onGenderChange}
                         allowClear
                       >
-                        <Option value="true">Active</Option>
-                        <Option value="false">Disable</Option>
+                        <Option value={true}>Active</Option>
+                        <Option value={false}>Disable</Option>
                       </Select>
                     </Form.Item>
                   </Col>
@@ -476,8 +544,17 @@ const NewCampaign = ({ user }: IProps) => {
                     </Form.Item>
                   </Col>
                   <Col span={6}>
-                    <Form.Item label="Upload Logo" valuePropName="fileList">
-                      <Upload listType="picture-circle" maxCount={1}>
+                    <Form.Item label="Upload Logo" name="logo">
+                      <Upload
+                        action={`${API_URL}/campaign/upload-image`}
+                        headers={{
+                          Authorization: `Bearer ${user.token}`,
+                        }}
+                        listType="picture-circle"
+                        onChange={handleChangeLogo}
+                        maxCount={1}
+                        defaultFileList={logo}
+                      >
                         <div>
                           <PlusOutlined />
                           <div style={{ marginTop: 8 }}>Upload</div>
@@ -486,8 +563,17 @@ const NewCampaign = ({ user }: IProps) => {
                     </Form.Item>
                   </Col>
                   <Col span={6}>
-                    <Form.Item label="Upload Cover" valuePropName="fileList">
-                      <Upload listType="picture-card" maxCount={1}>
+                    <Form.Item label="Upload Cover" name="cover_image">
+                      <Upload
+                        action={`${API_URL}/campaign/upload-image`}
+                        headers={{
+                          Authorization: `Bearer ${user.token}`,
+                        }}
+                        listType="picture-card"
+                        maxCount={1}
+                        onChange={handleChangeCover}
+                        defaultFileList={cover}
+                      >
                         <div>
                           <PlusOutlined />
                           <div style={{ marginTop: 8 }}>Upload</div>
@@ -498,42 +584,57 @@ const NewCampaign = ({ user }: IProps) => {
                 </Row>
                 <Row className="mt-1 mb-1">
                   <Col span={24}>
-                    <Editor
-                      onChange={(e, d) => console.log(e.target.value, d)}
-                      initialValue="<p>This is the initial content of the editor.</p>"
-                      init={{
-                        height: 500,
-                        width: '100%',
-                        plugins: [
-                          'advlist',
-                          'autolink',
-                          'lists',
-                          'link',
-                          'image',
-                          'charmap',
-                          'preview',
-                          'anchor',
-                          'searchreplace',
-                          'visualblocks',
-                          'code',
-                          'fullscreen',
-                          'insertdatetime',
-                          'media',
-                          'table',
-                          'code',
-                          'help',
-                          'wordcount',
-                        ],
-                        toolbar:
-                          'undo redo | blocks | ' +
-                          'bold italic forecolor | alignleft aligncenter ' +
-                          'alignright alignjustify | bullist numlist outdent indent | ' +
-                          'removeformat | help',
-                        content_style:
-                          'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                      }}
-                      onEditorChange={handleEditorChange}
-                    />
+                    <Form.Item label="Description">
+                      {!loading ? (
+                        <Editor
+                          onInit={(evt, editor) => (editorRef.current = editor)}
+                          ref={editorRef}
+                          initialValue={description}
+                          init={{
+                            height: 500,
+                            width: '100%',
+                            plugins: [
+                              'advlist',
+                              'autolink',
+                              'lists',
+                              'link',
+                              'image',
+                              'charmap',
+                              'preview',
+                              'anchor',
+                              'searchreplace',
+                              'visualblocks',
+                              'code',
+                              'fullscreen',
+                              'insertdatetime',
+                              'media',
+                              'table',
+                              'code',
+                              'help',
+                              'wordcount',
+                            ],
+                            toolbar:
+                              'undo redo | blocks | ' +
+                              'bold italic forecolor | alignleft aligncenter ' +
+                              'alignright alignjustify | bullist numlist outdent indent | ' +
+                              'removeformat | help',
+                            content_style:
+                              'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            height: 400,
+                            overflow: 'hidden',
+                            borderRadius: '10px',
+                            border: '2px solid #f1f1f1',
+                            padding: '15px',
+                          }}
+                          dangerouslySetInnerHTML={{ __html: description }}
+                        ></div>
+                      )}
+                    </Form.Item>
                   </Col>
                 </Row>
 
@@ -622,6 +723,7 @@ const NewCampaign = ({ user }: IProps) => {
                         type="primary"
                         htmlType="submit"
                         style={{ width: '185px' }}
+                        loading={loading}
                       >
                         Submit
                       </Button>

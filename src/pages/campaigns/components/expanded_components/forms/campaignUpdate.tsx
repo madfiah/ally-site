@@ -39,7 +39,6 @@ const FormCampaignUpdate = ({
     if (campaign_update.images) {
       let files: any = []
 
-      console.log(campaign_update.images)
       if (typeof campaign_update.images === 'object') {
         campaign_update.images.map((image: string, idx: number) => {
           let item = {

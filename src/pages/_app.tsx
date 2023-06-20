@@ -4,6 +4,9 @@ import NextNProgress from 'nextjs-progressbar'
 import '@/styles/global.scss'
 import { useEffect } from 'react'
 
+import React from 'react'
+React.useLayoutEffect = React.useEffect
+
 export default function App({
   Component,
   pageProps: { session, ...pageProps },

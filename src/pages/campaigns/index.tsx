@@ -114,11 +114,13 @@ const columns = [
     width: '150px',
     render: (data: any) => (
       <Space size={`small`} className="space-end">
-        <Button size="small">
-          <Tooltip title="Edit campaign">
-            <EditOutlined />
-          </Tooltip>
-        </Button>
+        <Link href={`/campaigns/edit/${data.acronim}`}>
+          <Button size="small">
+            <Tooltip title="Edit campaign">
+              <EditOutlined />
+            </Tooltip>
+          </Button>
+        </Link>
         <Link href={`/campaigns/contract`}>
           <Button size="small">
             <Tooltip title="Contract Campaign">
