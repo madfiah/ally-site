@@ -69,7 +69,7 @@ const NewCampaign = ({ user }: IProps) => {
   const acronim = router.query.acronim
 
   const loadCampaign = (acronim: any) => {
-    console.log('Load campaign data')
+    setCampaign(null)
     setLoading(true)
     Api.get(`campaign/detail/${acronim}`, user.token)
       .then((res: any) => {
@@ -135,11 +135,10 @@ const NewCampaign = ({ user }: IProps) => {
 
     Api.post(`campaign/update/${acronim}`, user.token, user.id, {
       ...values,
-      description,
     })
       .then((res: any) => {
         notification.success({ message: 'Success to update campaign' })
-        setCampaign(null)
+
         setTimeout(() => {
           loadCampaign(acronim)
         }, 500)
@@ -151,7 +150,8 @@ const NewCampaign = ({ user }: IProps) => {
 
   const handleEditorChange = (content: any, editor: any) => {
     // console.log('Content was updated:', content)
-    setDescription(content)
+    // setDescription(content)
+    form.setFieldValue('description', content)
   }
 
   const handleChangeLogo: UploadProps['onChange'] = ({ file, fileList }) => {
@@ -539,7 +539,7 @@ const NewCampaign = ({ user }: IProps) => {
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Form.Item label={`Snippet`} name="snippet">
+                    <Form.Item label={`Snippet`} name="snippet" required>
                       <Input.TextArea rows={5} />
                     </Form.Item>
                   </Col>
@@ -584,12 +584,32 @@ const NewCampaign = ({ user }: IProps) => {
                 </Row>
                 <Row className="mt-1 mb-1">
                   <Col span={24}>
-                    <Form.Item label="Description">
-                      {!loading ? (
+                    <Form.Item
+                      label="Description"
+                      name={`description`}
+                      style={{ display: loading ? 'block' : 'none' }}
+                    >
+                      <Input style={{ visibility: 'hidden' }} />
+                      <div
+                        style={{
+                          height: 400,
+                          overflow: 'hidden',
+                          borderRadius: '10px',
+                          border: '2px solid #f1f1f1',
+                          padding: '15px',
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: form.getFieldValue('description'),
+                        }}
+                      ></div>
+                    </Form.Item>
+                    {!loading && (
+                      <Form.Item>
                         <Editor
                           onInit={(evt, editor) => (editorRef.current = editor)}
                           ref={editorRef}
                           initialValue={description}
+                          onEditorChange={handleEditorChange}
                           init={{
                             height: 500,
                             width: '100%',
@@ -622,19 +642,8 @@ const NewCampaign = ({ user }: IProps) => {
                               'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                           }}
                         />
-                      ) : (
-                        <div
-                          style={{
-                            height: 400,
-                            overflow: 'hidden',
-                            borderRadius: '10px',
-                            border: '2px solid #f1f1f1',
-                            padding: '15px',
-                          }}
-                          dangerouslySetInnerHTML={{ __html: description }}
-                        ></div>
-                      )}
-                    </Form.Item>
+                      </Form.Item>
+                    )}
                   </Col>
                 </Row>
 
@@ -644,16 +653,7 @@ const NewCampaign = ({ user }: IProps) => {
 
                 <Row className="mt-1" gutter={20}>
                   <Col span={8}>
-                    <Form.Item
-                      label="Campaign 1"
-                      name="related_campaign_1"
-                      rules={[
-                        {
-                          required: true,
-                          message: 'Please select campaign!',
-                        },
-                      ]}
-                    >
+                    <Form.Item label="Campaign 1" name="related_campaign_1">
                       <Select
                         placeholder="Select campaign"
                         // onChange={onGenderChange}
@@ -667,16 +667,7 @@ const NewCampaign = ({ user }: IProps) => {
                     </Form.Item>
                   </Col>
                   <Col span={8}>
-                    <Form.Item
-                      label="Campaign 2"
-                      name="related_campaign_2"
-                      rules={[
-                        {
-                          required: true,
-                          message: 'Please select campaign!',
-                        },
-                      ]}
-                    >
+                    <Form.Item label="Campaign 2" name="related_campaign_2">
                       <Select
                         placeholder="Select campaign"
                         // onChange={onGenderChange}
@@ -690,16 +681,7 @@ const NewCampaign = ({ user }: IProps) => {
                     </Form.Item>
                   </Col>
                   <Col span={8}>
-                    <Form.Item
-                      label="Campaign 3"
-                      name="related_campaign_3"
-                      rules={[
-                        {
-                          required: true,
-                          message: 'Please select campaign!',
-                        },
-                      ]}
-                    >
+                    <Form.Item label="Campaign 3" name="related_campaign_3">
                       <Select
                         placeholder="Select campaign"
                         // onChange={onGenderChange}
@@ -727,7 +709,9 @@ const NewCampaign = ({ user }: IProps) => {
                       >
                         Submit
                       </Button>
-                      <Button>Reset</Button>
+                      <Button onClick={() => loadCampaign(acronim)}>
+                        Reset
+                      </Button>
                     </Space>
                   </Col>
                 </Row>
