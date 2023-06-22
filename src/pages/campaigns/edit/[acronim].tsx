@@ -7,7 +7,6 @@ import { Nunito } from '@next/font/google'
 
 import {
   Button,
-  Checkbox,
   Col,
   DatePicker,
   Divider,
@@ -17,7 +16,6 @@ import {
   Row,
   Select,
   Space,
-  Switch,
   Tabs,
   Upload,
   notification,
@@ -65,6 +63,7 @@ const NewCampaign = ({ user }: IProps) => {
   const [description, setDescription] = useState('')
   const [logo, setLogo] = useState<UploadFile[]>([])
   const [cover, setCover] = useState<UploadFile[]>([])
+  const [campaignOptions, setCampaignOptions] = useState([])
 
   const acronim = router.query.acronim
 
@@ -126,7 +125,19 @@ const NewCampaign = ({ user }: IProps) => {
       .finally(() => setLoading(false))
   }
 
+  const loadCampaignOptions = () => {
+    Api.get(`campaign/options`, user.token)
+      .then((res: any) => {
+        console.log(res)
+        setCampaignOptions(res.data)
+      })
+      .catch((err: any) => {
+        console.log(err)
+      })
+  }
+
   useEffect(() => {
+    loadCampaignOptions()
     loadCampaign(acronim)
   }, [])
 
@@ -653,45 +664,45 @@ const NewCampaign = ({ user }: IProps) => {
 
                 <Row className="mt-1" gutter={20}>
                   <Col span={8}>
-                    <Form.Item label="Campaign 1" name="related_campaign_1">
+                    <Form.Item label="Campaign 1" name="related_campaign_id_1">
                       <Select
+                        showSearch
+                        filterOption={(input, option: any) =>
+                          (option?.label.toLowerCase() ?? '').includes(input)
+                        }
                         placeholder="Select campaign"
                         // onChange={onGenderChange}
                         allowClear
-                      >
-                        <Option value="true">Produsen Butik 1</Option>
-                        <Option value="false">Laskar Pelangi 1</Option>
-                        <Option value="false1">Laskar Pelangi 2</Option>
-                        <Option value="false2">Cari Jodoh Sana-sini 1</Option>
-                      </Select>
+                        options={campaignOptions}
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={8}>
-                    <Form.Item label="Campaign 2" name="related_campaign_2">
+                    <Form.Item label="Campaign 2" name="related_campaign_id_2">
                       <Select
+                        showSearch
+                        filterOption={(input, option: any) =>
+                          (option?.label.toLowerCase() ?? '').includes(input)
+                        }
                         placeholder="Select campaign"
                         // onChange={onGenderChange}
                         allowClear
-                      >
-                        <Option value="true">Produsen Butik 1</Option>
-                        <Option value="false">Laskar Pelangi 1</Option>
-                        <Option value="false1">Laskar Pelangi 2</Option>
-                        <Option value="false2">Cari Jodoh Sana-sini 1</Option>
-                      </Select>
+                        options={campaignOptions}
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={8}>
-                    <Form.Item label="Campaign 3" name="related_campaign_3">
+                    <Form.Item label="Campaign 3" name="related_campaign_id_3">
                       <Select
+                        showSearch
+                        filterOption={(input, option: any) =>
+                          (option?.label.toLowerCase() ?? '').includes(input)
+                        }
                         placeholder="Select campaign"
                         // onChange={onGenderChange}
                         allowClear
-                      >
-                        <Option value="true">Produsen Butik 1</Option>
-                        <Option value="false">Laskar Pelangi 1</Option>
-                        <Option value="false1">Laskar Pelangi 2</Option>
-                        <Option value="false2">Cari Jodoh Sana-sini 1</Option>
-                      </Select>
+                        options={campaignOptions}
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -734,32 +745,23 @@ const NewCampaign = ({ user }: IProps) => {
         <div className="card-body">
           <Tabs
             tabPosition={'right'}
-            // items={new Array(3).fill(null).map((_, i) => {
-            //   const id = String(i + 1)
-            //   return {
-            //     label: `Tab ${id}`,
-            //     key: id,
-            //     children: `Content of Tab ${id}`,
-            //   }
-            // })}
-
             items={[
               {
                 label: `Campaign Form`,
-                key: '123',
+                key: 'campaign-form',
                 children: <FormCampaign />,
               },
               {
                 label: `Galleries`,
-                key: '1234',
-                children: <CampaignGallery />,
-                disabled: fetchError.show,
+                key: 'campaign-gallery',
+                children: <CampaignGallery user={user} campaign={campaign} />,
+                disabled: campaign === null,
               },
               {
                 label: `PDFs`,
-                key: '1235',
+                key: 'campaign-pdf',
                 children: <PdfCampaign />,
-                disabled: fetchError.show,
+                disabled: campaign === null,
               },
             ]}
           />

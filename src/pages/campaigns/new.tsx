@@ -20,11 +20,16 @@ import {
 import CampaignGallery from './components/galleries'
 import PdfCampaign from './components/pdf'
 import { Editor } from '@tinymce/tinymce-react'
+import { getSession } from 'next-auth/react'
 
 const nunito = Nunito({ subsets: ['latin'] })
 const { Option } = Select
 
-const NewCampaign = () => {
+interface IProps {
+  user: any
+}
+
+const NewCampaign = ({ user }: IProps) => {
   const [form] = Form.useForm()
 
   const onFinish = (values: any) => {
@@ -581,7 +586,7 @@ const NewCampaign = () => {
               {
                 label: `Galleries`,
                 key: '1234',
-                children: <CampaignGallery />,
+                children: <CampaignGallery user={user} campaign={null} />,
               },
               {
                 label: `PDFs`,
@@ -597,3 +602,14 @@ const NewCampaign = () => {
 }
 
 export default NewCampaign
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
