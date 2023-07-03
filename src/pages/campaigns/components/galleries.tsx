@@ -30,7 +30,7 @@ const CampaignGallery = ({ user, campaign }: Props) => {
 
   const initGalleries = () => {
     setLoading(true)
-    Api.get(`campaign/galleries/${campaign.id}`, user.token)
+    Api.get(`campaign/galleries/${campaign?.id}`, user?.token)
       .then((res: any) => {
         // console.log(res)
         setFileList(res.data)
@@ -78,7 +78,7 @@ const CampaignGallery = ({ user, campaign }: Props) => {
 
   const onRemove = (file: any) => {
     setLoading(true)
-    Api.post(`campaign/gallery/${file.uid}/delete`, user.token).then((res) => {
+    Api.post(`campaign/gallery/${file.uid}/delete`, user?.token).then((res) => {
       initGalleries()
     })
   }
@@ -103,9 +103,9 @@ const CampaignGallery = ({ user, campaign }: Props) => {
         Campaign Galleries
       </Divider>
       <Upload
-        action={`${API_URL}/campaign/gallery/${campaign.id}/upload`}
+        action={`${API_URL}/campaign/gallery/${campaign?.id}/upload`}
         headers={{
-          Authorization: `Bearer ${user.token}`,
+          Authorization: `Bearer ${user?.token}`,
         }}
         listType="picture-card"
         fileList={fileList}

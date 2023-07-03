@@ -591,7 +591,7 @@ const NewCampaign = ({ user }: IProps) => {
               {
                 label: `PDFs`,
                 key: '1235',
-                children: <PdfCampaign />,
+                children: <PdfCampaign user={user} campaign={null} />,
               },
             ]}
           />

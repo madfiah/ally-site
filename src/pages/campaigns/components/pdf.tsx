@@ -1,69 +1,113 @@
+import { Api } from '@/api/api'
 import {
   DeleteOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
+  LoadingOutlined,
   PlusOutlined,
+  UploadOutlined,
 } from '@ant-design/icons'
+import { Divider, message, Upload, UploadProps } from 'antd'
 import { Button, Space, Table } from 'antd'
+import type { UploadFile } from 'antd/es/upload/interface'
+import { useEffect, useState } from 'react'
 
-const PdfCampaign = () => {
-  const dataSource = [
-    {
-      key: '1',
-      name: 'Company Profile',
-      url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      created_at: '10 March 2023',
-    },
-  ]
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+interface IProps {
+  campaign: any
+  user: any
+}
+
+const PdfCampaign = ({ campaign, user }: IProps) => {
+  const [loading, setLoading] = useState(false)
+  const [fileList, setFileList] = useState<UploadFile[]>([])
+
+  const init = () => {
+    setLoading(true)
+    Api.get(`campaign/pdfs/${campaign?.id}`, user?.token)
+      .then((res: any) => {
+        // console.log(res)
+        setFileList(res.data)
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    if (campaign) {
+      init()
+    }
+  }, [])
+
+  const handleChange: UploadProps['onChange'] = ({
+    file,
+    fileList: newFileList,
+  }) => {
+    newFileList = newFileList.map((file) => {
+      if (file.response) {
+        // Component will show file.url as link
+        const { data } = file.response
+
+        file.uid = data.uid
+        file.name = data.name
+        file.url = data.url
+      }
+      return file
+    })
+    setFileList(newFileList)
+  }
+
+  const onRemove = (file: any) => {
+    setLoading(true)
+    Api.post(`campaign/pdf/${file.uid}/delete`, user?.token).then((res) => {
+      init()
+    })
+  }
+
+  const props: UploadProps = {
+    name: 'file',
+    fileList: fileList,
+    action: `${API_URL}/campaign/pdf/${campaign?.id}/upload`,
+    headers: {
+      Authorization: `Bearer ${user?.token}`,
     },
-    {
-      title: 'Created at',
-      dataIndex: 'created_at',
-      key: 'created_at',
+    beforeUpload: (file) => {
+      console.log(file.type)
+      const isPDF = file.type === 'application/pdf'
+      if (!isPDF) {
+        message.error(`${file.name} is not a pdf file`)
+      }
+      return isPDF || Upload.LIST_IGNORE
     },
-    {
-      title: 'Action',
-      dataIndex: 'url',
-      key: 'url',
-      render: (url: string, data: any) => (
-        <Space>
-          <Button icon={<EyeOutlined />} size="small">
-            <a href={url} target="blank">
-              &nbsp;
-              {` Open`}
-            </a>
-          </Button>
-          <Button icon={<DeleteOutlined />} size="small" danger>
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ]
+    onChange: handleChange,
+    onRemove: onRemove,
+    disabled: loading,
+  }
+
+  const uploadButton = (
+    <div>
+      {loading ? (
+        <>
+          <LoadingOutlined />
+          <div style={{ marginTop: 8 }}>Please wait</div>
+        </>
+      ) : (
+        <>
+          <PlusOutlined /> <div style={{ marginTop: 8 }}>Upload</div>
+        </>
+      )}
+    </div>
+  )
 
   return (
-    <Table
-      title={() => (
-        <Space className="space-between">
-          <h4 className="m-0">Campaign PDF Files</h4>
-          <Space>
-            <Button
-              type="primary"
-              size="small"
-              icon={<PlusOutlined />}
-            ></Button>
-          </Space>
-        </Space>
-      )}
-      dataSource={dataSource}
-      columns={columns}
-    />
+    <>
+      <Divider orientation="left" dashed>
+        Campaign Documents
+      </Divider>
+      <Upload listType="picture-card" {...props}>
+        {fileList.length >= 5 ? null : uploadButton}
+      </Upload>
+    </>
   )
 }
 

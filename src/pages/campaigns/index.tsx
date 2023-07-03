@@ -28,8 +28,10 @@ import moment from 'moment'
 
 import { getSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ExpandedCampaign from './components/ExpandedCampaign'
+import NewCampaignPopup from './components/NewCampaign'
 
 const { Search } = Input
 const { Text } = Typography
@@ -167,6 +169,7 @@ const columns = [
 ]
 
 const Index = ({ user }: IProps) => {
+  const router = useRouter()
   const [campaigns, setCampaigns] = useState<any>({
     data: [],
   })
@@ -176,6 +179,7 @@ const Index = ({ user }: IProps) => {
     release_date: '',
   })
   const [loading, setLoading] = useState(false)
+  const [newCampaignPopup, setNewCampaignPopup] = useState(false)
 
   const initCampaigns = async (params: any) => {
     setLoading(true)
@@ -221,6 +225,11 @@ const Index = ({ user }: IProps) => {
     })
   }
 
+  const actionAfterCreateCampaign = (slug: string) => {
+    console.log(`goto page edit campaign with slug ${slug}`)
+    router.push(`campaigns/edit/${slug}`)
+  }
+
   return (
     <>
       <div className="kb-card card-shadow">
@@ -229,11 +238,9 @@ const Index = ({ user }: IProps) => {
             <p className={nunito.className}>Campaigns</p>
             <Space wrap>
               <Tooltip title="Create new campaign" placement={`topRight`}>
-                <Link href={'/campaigns/new'}>
-                  <Button>
-                    <PlusOutlined /> Create
-                  </Button>
-                </Link>
+                <Button onClick={() => setNewCampaignPopup(true)}>
+                  <PlusOutlined /> Create
+                </Button>
               </Tooltip>
             </Space>
           </Space>
@@ -305,6 +312,13 @@ const Index = ({ user }: IProps) => {
           />
         </div>
       </div>
+
+      <NewCampaignPopup
+        user={user}
+        isModalOpen={newCampaignPopup}
+        handleOk={actionAfterCreateCampaign}
+        handleCancel={() => setNewCampaignPopup(false)}
+      />
     </>
   )
 }
