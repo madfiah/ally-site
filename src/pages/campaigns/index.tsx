@@ -116,7 +116,7 @@ const columns = [
     width: '150px',
     render: (data: any) => (
       <Space size={`small`} className="space-end">
-        <Link href={`/campaigns/edit/${data.acronim}`}>
+        <Link href={`/campaigns/edit/${data.slug}`}>
           <Button size="small">
             <Tooltip title="Edit campaign">
               <EditOutlined />
@@ -136,7 +136,7 @@ const columns = [
               {
                 key: '2',
                 label: (
-                  <Link href={'/campaigns/investment-report'}>
+                  <Link href={`/campaigns/investment-report/${data.slug}`}>
                     Investment Report
                   </Link>
                 ),
@@ -226,7 +226,6 @@ const Index = ({ user }: IProps) => {
   }
 
   const actionAfterCreateCampaign = (slug: string) => {
-    console.log(`goto page edit campaign with slug ${slug}`)
     router.push(`campaigns/edit/${slug}`)
   }
 

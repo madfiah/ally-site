@@ -1,3 +1,5 @@
+import { Api } from '@/api/api'
+import { currency } from '@/utils/helpers'
 import {
   DeleteOutlined,
   DownloadOutlined,
@@ -5,6 +7,9 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { Button, Card, InputNumber, Modal, Space, Table, Tooltip } from 'antd'
+import { getSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 
 const dataSource = [
   {
@@ -25,18 +30,47 @@ const dataSource = [
   },
 ]
 
-const InvestmentReport = () => {
+interface IProps {
+  user: any
+}
+
+const InvestmentReport = ({ user }: IProps) => {
+  const router = useRouter()
   const [modal, contextHolder] = Modal.useModal()
+  const [loading, setLoading] = useState(false)
+  const [campaignName, setCampaignName] = useState('')
+  const [report, setReport] = useState([])
+
+  const slug = router.query.slug
+
+  const initData = () => {
+    setLoading(true)
+    Api.get(`campaign/investment-report/${slug}`, user?.token)
+      .then((res: any) => {
+        setCampaignName(res.data.campaign_name)
+        setReport(res.data.report)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    initData()
+  }, [])
 
   const confirm = (data: any) => {
     modal.confirm({
       title: 'Delete Action',
       icon: <ExclamationCircleOutlined />,
-      content: `Are you sure want to delete data investment ${data.full_name}`,
+      content: `Are you sure want to delete data investment ${currency(
+        data.amount
+      )} from ${data.user.ic_name} `,
       okText: 'Delete',
       cancelText: 'Cancel',
       onOk: () => {
-        console.log('Deleting investment data for name ', data.full_name)
+        console.log('Deleting investment data for name ', data.user.ic_name)
       },
     })
   }
@@ -52,53 +86,36 @@ const InvestmentReport = () => {
     },
     {
       title: 'Name',
-      dataIndex: 'full_name',
-      key: 'full_name',
+      dataIndex: 'user',
+      key: 'user',
       width: '30%',
+      render: (user: any) => <>{user.ic_name}</>,
     },
     {
       title: 'IC Number',
-      dataIndex: 'ic_number',
-      key: 'ic_number',
+      dataIndex: 'user',
+      key: 'user',
+      render: (user: any) => <>{user.nric}</>,
     },
     {
       title: 'Nationality',
-      dataIndex: 'nationality',
-      key: 'nationality',
+      dataIndex: 'user',
+      key: 'user',
+      render: (user: any) => <>{user.nationality}</>,
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
       width: '15%',
-      render: (amount: number) => (
-        <InputNumber
-          style={{ width: '100%' }}
-          defaultValue={amount}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
-      ),
+      render: (amount: number) => <>{currency(amount)}</>,
     },
     {
       title: 'Total Payout',
       dataIndex: 'payout',
       key: 'payout',
       width: '15%',
-      render: (payout: number) => (
-        <InputNumber
-          style={{ width: '100%' }}
-          defaultValue={payout}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
-      ),
+      render: (payout: number) => <>{currency(payout)}</>,
     },
     {
       title: '',
@@ -107,11 +124,6 @@ const InvestmentReport = () => {
       width: '150px',
       render: (data: any) => (
         <Space size={`small`} className="space-end">
-          <Tooltip title="Open detail user">
-            <Button size="small">
-              <UserOutlined />
-            </Button>
-          </Tooltip>
           <Tooltip title="Delete data investment">
             <Button size="small" danger onClick={() => confirm(data)}>
               <DeleteOutlined />
@@ -123,17 +135,33 @@ const InvestmentReport = () => {
   ]
   return (
     <Card
-      title="Investments Report : Worldtrans Indopersada (40)"
+      title={campaignName}
       extra={
         <Button size="small" icon={<DownloadOutlined />}>
           Export to Excel
         </Button>
       }
     >
-      <Table dataSource={dataSource} columns={columns} scroll={{ x: 800 }} />
+      <Table
+        dataSource={report}
+        columns={columns}
+        scroll={{ x: 800 }}
+        loading={loading}
+      />
       {contextHolder}
     </Card>
   )
 }
 
 export default InvestmentReport
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}

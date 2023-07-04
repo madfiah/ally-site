@@ -65,12 +65,12 @@ const NewCampaign = ({ user }: IProps) => {
   const [cover, setCover] = useState<UploadFile[]>([])
   const [campaignOptions, setCampaignOptions] = useState([])
 
-  const acronim = router.query.acronim
+  const slug = router.query.slug
 
-  const loadCampaign = (acronim: any) => {
+  const loadCampaign = (slug: any) => {
     setCampaign(null)
     setLoading(true)
-    Api.get(`campaign/detail/${acronim}`, user.token)
+    Api.get(`campaign/detail/${slug}`, user.token)
       .then((res: any) => {
         const params = {
           ...res.data,
@@ -138,20 +138,20 @@ const NewCampaign = ({ user }: IProps) => {
 
   useEffect(() => {
     loadCampaignOptions()
-    loadCampaign(acronim)
+    loadCampaign(slug)
   }, [])
 
   const onFinish = (values: any) => {
     setLoading(true)
 
-    Api.post(`campaign/update/${acronim}`, user.token, user.id, {
+    Api.post(`campaign/update/${slug}`, user.token, user.id, {
       ...values,
     })
       .then((res: any) => {
         notification.success({ message: 'Success to update campaign' })
 
         setTimeout(() => {
-          loadCampaign(acronim)
+          loadCampaign(slug)
         }, 500)
       })
       .catch((err: any) => {
@@ -707,9 +707,7 @@ const NewCampaign = ({ user }: IProps) => {
                       >
                         Submit
                       </Button>
-                      <Button onClick={() => loadCampaign(acronim)}>
-                        Reset
-                      </Button>
+                      <Button onClick={() => loadCampaign(slug)}>Reset</Button>
                     </Space>
                   </Col>
                 </Row>
