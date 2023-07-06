@@ -8,6 +8,7 @@ import {
   FileProtectOutlined,
   CheckOutlined,
   CloseOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons'
 import { Nunito } from '@next/font/google'
 import {
@@ -16,6 +17,8 @@ import {
   Dropdown,
   Input,
   MenuProps,
+  message,
+  Modal,
   notification,
   Select,
   Space,
@@ -30,6 +33,7 @@ import { getSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import DuplicateCampaignPopup from './components/DuplicateCampaign'
 import ExpandedCampaign from './components/ExpandedCampaign'
 import NewCampaignPopup from './components/NewCampaign'
 
@@ -42,144 +46,22 @@ interface IProps {
   user: any
 }
 
-const columns = [
-  {
-    title: 'Acronim',
-    dataIndex: 'acronim',
-    key: 'acronim',
-  },
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-  },
-  {
-    title: 'Type',
-    dataIndex: 'type',
-    key: 'type',
-    render: (type: string) => (
-      <>
-        {type === 'sme' ? (
-          <Tag color={`#108ee9`} className={nunito.className}>
-            SME
-          </Tag>
-        ) : (
-          <Tag color={`#87d068`} className={nunito.className}>
-            DONATION
-          </Tag>
-        )}
-      </>
-    ),
-  },
-  {
-    title: 'Release date',
-    dataIndex: 'release_datetime',
-    key: 'release_datetime',
-  },
-  {
-    title: 'Closing date',
-    dataIndex: 'expiry_datetime',
-    key: 'expiry_datetime',
-  },
-  {
-    title: 'Current funding ($)',
-    dataIndex: 'currenct_invest',
-    key: 'currenct_invest',
-    render: (currenct_invest: any) => (
-      <div className="text-end">
-        {currenct_invest ? currency(parseFloat(currenct_invest)) : '$0'}
-      </div>
-    ),
-  },
-  {
-    title: 'Total funding ($)',
-    dataIndex: 'total_invest_amount',
-    key: 'total_invest_amount',
-    render: (total_invest_amount: any) => (
-      <div className="text-end">
-        {total_invest_amount ? currency(parseFloat(total_invest_amount)) : '$0'}
-      </div>
-    ),
-  },
-  {
-    title: 'Enable',
-    dataIndex: 'is_enable',
-    key: 'is_enable',
-    render: (is_enable: boolean) => (
-      <>{is_enable ? <CheckOutlined /> : <CloseOutlined />}</>
-    ),
-  },
-  {
-    title: '',
-    dataIndex: '',
-    key: 'x',
-    width: '150px',
-    render: (data: any) => (
-      <Space size={`small`} className="space-end">
-        <Link href={`/campaigns/edit/${data.slug}`}>
-          <Button size="small">
-            <Tooltip title="Edit campaign">
-              <EditOutlined />
-            </Tooltip>
-          </Button>
-        </Link>
-        <Link href={`/campaigns/contract`}>
-          <Button size="small">
-            <Tooltip title="Contract Campaign">
-              <FileProtectOutlined />
-            </Tooltip>
-          </Button>
-        </Link>
-        <Dropdown
-          menu={{
-            items: [
-              {
-                key: '2',
-                label: (
-                  <Link href={`/campaigns/investment-report/${data.slug}`}>
-                    Investment Report
-                  </Link>
-                ),
-              },
-              {
-                key: '3',
-                label: (
-                  <Link href={'/campaigns/payout-report'}>Payout Report</Link>
-                ),
-              },
-              {
-                key: '6',
-                label: <span>Duplicate</span>,
-              },
-              {
-                key: '7',
-                label: <Text type="danger">Delete</Text>,
-              },
-            ],
-          }}
-          placement="bottomRight"
-        >
-          <Button size="small">
-            <MoreOutlined />
-          </Button>
-        </Dropdown>
-      </Space>
-    ),
-  },
-]
-
 const Index = ({ user }: IProps) => {
   const router = useRouter()
+  const [modal, contextHolder] = Modal.useModal()
   const [campaigns, setCampaigns] = useState<any>({
     data: [],
   })
   const [filter, setFilter] = useState({
-    campaign_name: '',
+    search: '',
     type: null,
     release_date: '',
+    field: 'acronim',
   })
   const [loading, setLoading] = useState(false)
   const [newCampaignPopup, setNewCampaignPopup] = useState(false)
+  const [duplicateCampaignPopup, setDuplicateCampaignPopup] = useState(false)
+  const [campaignToDuplicate, setCampaignToDuplicate] = useState<any>(null)
 
   const initCampaigns = async (params: any) => {
     setLoading(true)
@@ -213,7 +95,7 @@ const Index = ({ user }: IProps) => {
   const onSearch = (value: string) => {
     setFilter({
       ...filter,
-      campaign_name: value,
+      search: value,
     })
   }
 
@@ -228,6 +110,187 @@ const Index = ({ user }: IProps) => {
   const actionAfterCreateCampaign = (slug: string) => {
     router.push(`campaigns/edit/${slug}`)
   }
+
+  const confirm = (data: any) => {
+    modal.confirm({
+      title: 'Delete Action',
+      icon: <ExclamationCircleOutlined />,
+      content: `Are you sure want to delete campaign ${data.name} `,
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        Api.post(`campaign/delete/${data.slug}`, user?.token, user?.id)
+          .then((res: any) => {
+            message.success(`Campaign ${data.name} was deleted`)
+            initCampaigns({
+              ...filter,
+              per_page: 10,
+            })
+          })
+          .catch((err) => {
+            message.error('Failed to delete data, please try again')
+          })
+      },
+    })
+  }
+
+  const columns = [
+    {
+      title: 'Acronim',
+      dataIndex: 'acronim',
+      key: 'acronim',
+    },
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type: string) => (
+        <>
+          {type === 'sme' ? (
+            <Tag color={`#108ee9`} className={nunito.className}>
+              SME
+            </Tag>
+          ) : (
+            <Tag color={`#87d068`} className={nunito.className}>
+              DONATION
+            </Tag>
+          )}
+        </>
+      ),
+    },
+    {
+      title: 'Release date',
+      dataIndex: 'release_datetime',
+      key: 'release_datetime',
+    },
+    {
+      title: 'Closing date',
+      dataIndex: 'expiry_datetime',
+      key: 'expiry_datetime',
+    },
+    {
+      title: 'Current funding ($)',
+      dataIndex: 'currenct_invest',
+      key: 'currenct_invest',
+      render: (currenct_invest: any) => (
+        <div className="text-end">
+          {currenct_invest ? currency(parseFloat(currenct_invest)) : '$0'}
+        </div>
+      ),
+    },
+    {
+      title: 'Total funding ($)',
+      dataIndex: 'total_invest_amount',
+      key: 'total_invest_amount',
+      render: (total_invest_amount: any) => (
+        <div className="text-end">
+          {total_invest_amount
+            ? currency(parseFloat(total_invest_amount))
+            : '$0'}
+        </div>
+      ),
+    },
+    {
+      title: 'Enable',
+      dataIndex: 'is_enable',
+      key: 'is_enable',
+      render: (is_enable: boolean) => (
+        <>{is_enable ? <CheckOutlined /> : <CloseOutlined />}</>
+      ),
+    },
+    {
+      title: '',
+      dataIndex: '',
+      key: 'x',
+      width: '150px',
+      render: (data: any) => (
+        <Space size={`small`} className="space-end">
+          <Link href={`/campaigns/edit/${data.slug}`}>
+            <Button size="small">
+              <Tooltip title="Edit campaign">
+                <EditOutlined />
+              </Tooltip>
+            </Button>
+          </Link>
+          <Link href={`/campaigns/contract`}>
+            <Button size="small">
+              <Tooltip title="Contract Campaign">
+                <FileProtectOutlined />
+              </Tooltip>
+            </Button>
+          </Link>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: '2',
+                  label: (
+                    <Link href={`/campaigns/investment-report/${data.slug}`}>
+                      Investment Report
+                    </Link>
+                  ),
+                },
+                {
+                  key: '3',
+                  label: (
+                    <Link href={`/campaigns/payout-report/${data.slug}`}>
+                      Payout Report
+                    </Link>
+                  ),
+                },
+                {
+                  key: '6',
+                  label: (
+                    <span
+                      style={{ display: 'block' }}
+                      onClick={() => {
+                        setCampaignToDuplicate(data)
+                        setDuplicateCampaignPopup(true)
+                      }}
+                    >
+                      Duplicate
+                    </span>
+                  ),
+                },
+                {
+                  key: '7',
+                  label: (
+                    <span
+                      style={{ display: 'block' }}
+                      onClick={() => confirm(data)}
+                    >
+                      <Text type="danger">Delete</Text>
+                    </span>
+                  ),
+                },
+              ],
+            }}
+            placement="bottomRight"
+          >
+            <Button size="small">
+              <MoreOutlined />
+            </Button>
+          </Dropdown>
+        </Space>
+      ),
+    },
+  ]
+
+  const options = [
+    {
+      value: 'acronim',
+      label: 'Acronim',
+    },
+    {
+      value: 'name',
+      label: 'Name',
+    },
+  ]
 
   return (
     <>
@@ -245,12 +308,29 @@ const Index = ({ user }: IProps) => {
           </Space>
           <div className="mt-1">
             <Space>
-              <Search
-                allowClear
-                placeholder="Search by name"
-                onSearch={onSearch}
-                style={{ width: 250 }}
-              />
+              <Space.Compact>
+                <Select
+                  style={{ width: '105px' }}
+                  defaultValue={filter.field}
+                  options={options}
+                  onChange={(value) =>
+                    setFilter({
+                      ...filter,
+                      field: value,
+                    })
+                  }
+                />
+                <Search
+                  allowClear
+                  placeholder={`${
+                    filter.field === 'acronim'
+                      ? 'Search by acronim'
+                      : 'Search by name'
+                  }`}
+                  onSearch={onSearch}
+                  style={{ width: 250 }}
+                />
+              </Space.Compact>
               <Select
                 allowClear
                 placeholder="Select type"
@@ -318,6 +398,16 @@ const Index = ({ user }: IProps) => {
         handleOk={actionAfterCreateCampaign}
         handleCancel={() => setNewCampaignPopup(false)}
       />
+
+      <DuplicateCampaignPopup
+        user={user}
+        campaign={campaignToDuplicate}
+        isModalOpen={duplicateCampaignPopup}
+        handleOk={actionAfterCreateCampaign}
+        handleCancel={() => setDuplicateCampaignPopup(false)}
+      />
+
+      {contextHolder}
     </>
   )
 }

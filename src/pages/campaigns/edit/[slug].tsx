@@ -1,6 +1,8 @@
 import {
+  CopyOutlined,
   LoadingOutlined,
   PlusOutlined,
+  ReloadOutlined,
   WarningOutlined,
 } from '@ant-design/icons'
 import { Nunito } from '@next/font/google'
@@ -19,6 +21,7 @@ import {
   Tabs,
   Upload,
   notification,
+  Tooltip,
 } from 'antd'
 import CampaignGallery from '../components/galleries'
 import PdfCampaign from '../components/pdf'
@@ -55,6 +58,7 @@ const NewCampaign = ({ user }: IProps) => {
   const router = useRouter()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
   const [fetchError, setFetchError] = useState({
     show: false,
     message: '',
@@ -82,6 +86,7 @@ const NewCampaign = ({ user }: IProps) => {
             : null,
           logo: res.data.logo === null ? '' : res.data.logo,
         }
+        console.log(params)
         form.setFieldsValue(params)
         setDescription(params.description)
         setCampaign(params)
@@ -177,6 +182,22 @@ const NewCampaign = ({ user }: IProps) => {
     if (file.status === 'done') {
       form.setFieldValue('cover_image', file.response.data.file_path)
     }
+  }
+
+  const regeneratePassword = () => {
+    setPasswordLoading(true)
+    setTimeout(() => {
+      Api.get(`campaign/generate-password`, user.token)
+        .then((res: any) => {
+          console.log(res)
+          form.setFieldValue('password', res.password)
+        })
+        .catch((err: any) => {
+          console.log(err)
+          notification.error({ message: 'failed to generate password' })
+        })
+        .finally(() => setPasswordLoading(false))
+    }, 1000)
   }
 
   const FormCampaign = () => {
@@ -299,11 +320,20 @@ const NewCampaign = ({ user }: IProps) => {
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Form.Item label="Acronim" name="acronim">
+                    <Form.Item
+                      label="Acronim"
+                      name="acronim"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please enter campaign acronim!',
+                        },
+                      ]}
+                    >
                       <Input />
                     </Form.Item>
                   </Col>
-                  <Col span={12}>
+                  <Col span={8}>
                     <Form.Item
                       label="Project Type"
                       name="type"
@@ -321,7 +351,7 @@ const NewCampaign = ({ user }: IProps) => {
                       </Select>
                     </Form.Item>
                   </Col>
-                  <Col span={12}>
+                  <Col span={8}>
                     <Form.Item
                       label="SME Sub Type"
                       name="subtype"
@@ -337,6 +367,24 @@ const NewCampaign = ({ user }: IProps) => {
                           INVOICE FINANCING
                         </Option>
                       </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item label="Password">
+                      <Space.Compact style={{ width: '100%' }}>
+                        <Form.Item noStyle name="password">
+                          <Input readOnly />
+                        </Form.Item>
+                        <Form.Item noStyle>
+                          <Tooltip title="Regenerate password">
+                            <Button
+                              icon={<ReloadOutlined />}
+                              onClick={() => regeneratePassword()}
+                              loading={passwordLoading}
+                            />
+                          </Tooltip>
+                        </Form.Item>
+                      </Space.Compact>
                     </Form.Item>
                   </Col>
                   <Divider dashed />

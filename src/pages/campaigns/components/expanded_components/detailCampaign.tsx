@@ -3,9 +3,12 @@ import {
   EyeOutlined,
   NotificationOutlined,
 } from '@ant-design/icons'
-import { Button, Col, List, Row, Space, Tooltip } from 'antd'
+import { Button, Col, List, message, Row, Space, Tooltip } from 'antd'
 import { currency } from '@/utils/helpers'
 import Link from 'next/link'
+import { Api } from '@/api/api'
+import { useState } from 'react'
+import PreviewCampaign from './previewCampaign'
 
 interface IProps {
   campaign: any
@@ -13,6 +16,9 @@ interface IProps {
 }
 
 const DetailCampaign = ({ campaign, user }: IProps) => {
+  const [loading, setLoading] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
   const data = [
     { title: 'Company Name', content: campaign?.country },
     { title: 'Industry', content: campaign?.industry },
@@ -26,6 +32,18 @@ const DetailCampaign = ({ campaign, user }: IProps) => {
     { title: 'Project Return', content: campaign?.return + '%' },
     { title: 'Project Tenor', content: campaign?.tenor },
   ]
+
+  const sendNotif = () => {
+    setLoading(true)
+    Api.post(`campaign/send-notif/${campaign?.slug}`, user?.token)
+      .then((res: any) => {
+        message.success(res.message)
+      })
+      .catch((err) => {
+        message.error('Failed to send notification')
+      })
+      .finally(() => setLoading(false))
+  }
 
   return (
     <>
@@ -64,16 +82,25 @@ const DetailCampaign = ({ campaign, user }: IProps) => {
       <Row className="my-2">
         <Col span={24}>
           <Space>
-            <Link href={`/campaigns/edit/${campaign?.acronim}`}>
+            <Link href={`/campaigns/edit/${campaign?.slug}`}>
               <Button type="primary" icon={<EditOutlined />} size={`small`}>
                 Edit Campaign
               </Button>
             </Link>
-            <Button icon={<EyeOutlined />} size={`small`}>
+            <Button
+              icon={<EyeOutlined />}
+              size={`small`}
+              onClick={() => setPreviewOpen(true)}
+            >
               Preview Campaign
             </Button>
             <Tooltip title="Notify users a new campaign has been released!">
-              <Button icon={<NotificationOutlined />} size={`small`}>
+              <Button
+                icon={<NotificationOutlined />}
+                size={`small`}
+                onClick={sendNotif}
+                loading={loading}
+              >
                 Send Mobile Notification
               </Button>
             </Tooltip>
@@ -85,6 +112,12 @@ const DetailCampaign = ({ campaign, user }: IProps) => {
           </Space>
         </Col>
       </Row>
+
+      <PreviewCampaign
+        handleClose={() => setPreviewOpen(false)}
+        isModalOpen={previewOpen}
+        campaign={campaign}
+      />
     </>
   )
 }

@@ -6,7 +6,16 @@ import {
   ExclamationCircleOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Button, Card, InputNumber, Modal, Space, Table, Tooltip } from 'antd'
+import {
+  Button,
+  Card,
+  InputNumber,
+  message,
+  Modal,
+  Space,
+  Table,
+  Tooltip,
+} from 'antd'
 import { getSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
@@ -71,6 +80,15 @@ const InvestmentReport = ({ user }: IProps) => {
       cancelText: 'Cancel',
       onOk: () => {
         console.log('Deleting investment data for name ', data.user.ic_name)
+
+        Api.post(`investment/delete/${data.id}`, user?.token, user?.id)
+          .then((res: any) => {
+            message.success(`Investment from ${data.user.ic_name} was deleted`)
+            initData()
+          })
+          .catch((err) => {
+            message.error('Failed to delete data, please try again')
+          })
       },
     })
   }
