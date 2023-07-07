@@ -73,6 +73,7 @@ const Dashboard = ({ token }: IProps) => {
           />
         </Col>
       </Row>
+
       <Divider dashed />
 
       <Row gutter={[16, 16]}>
