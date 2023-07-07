@@ -113,11 +113,11 @@ const DetailCampaign = ({ campaign, user }: IProps) => {
         </Col>
       </Row>
 
-      {/* <PreviewCampaign
+      <PreviewCampaign
         handleClose={() => setPreviewOpen(false)}
         isModalOpen={previewOpen}
         campaign={campaign}
-      /> */}
+      />
     </>
   )
 }

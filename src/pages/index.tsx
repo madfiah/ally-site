@@ -1,9 +1,7 @@
-import { Button, Col, Divider, Row, Space } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Col, Divider, Row } from 'antd'
+import React from 'react'
 import { getSession } from 'next-auth/react'
-import { Api } from '@/api/api'
 import DataNewUsers from './dashboard/dataNewUsers'
-import { Nunito } from '@next/font/google'
 import CardReport from './dashboard/cardReport'
 import CardReportLast3Days from './dashboard/cardReportLast3Days'
 import CardReportAmountInvested from './dashboard/cardReportAmountInvested'
@@ -19,8 +17,6 @@ interface IProps {
 }
 
 const Dashboard = ({ token }: IProps) => {
-  // const [data, setData] = useState<any>(null)
-
   return (
     <>
       <Row gutter={[16, 16]}>
