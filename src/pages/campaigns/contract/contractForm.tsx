@@ -1,14 +1,75 @@
-import { Button, Card, Col, Divider, Form, Input, Row, Space } from 'antd'
+import { Api } from '@/api/api'
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Row,
+  Space,
+} from 'antd'
+import { useEffect, useState } from 'react'
 
-const CampaignContractForm = () => {
+interface Iprops {
+  contract: any
+  user: any
+}
+
+const CampaignContractForm = ({ contract, user }: Iprops) => {
   const [form] = Form.useForm()
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    console.log(contract)
+    form.setFieldsValue(contract)
+    calculatePayout('0')
+  }, [])
 
   const onFinish = (values: any) => {
     console.log('Success:', values)
+    setLoading(true)
+
+    Api.post(
+      `campaign/contract/detail/${contract?.id}`,
+      user?.token,
+      null,
+      values
+    )
+      .then((res: any) => {
+        console.log('update response ===> ', res)
+        message.success({ content: 'Success to update data contract' })
+      })
+      .catch((err) => {
+        console.log('Error => ', err)
+        message.error({ content: err.data.message })
+      })
+      .finally(() => setLoading(false))
   }
 
   const onFinishFailed = (errorInfo: any) => {
     console.log('Failed:', errorInfo)
+  }
+
+  const calculatePayout = (value: string) => {
+    const fee_kb = value ? parseFloat(parseFloat(value).toFixed(2)) : 0
+    const exchange_rate = form.getFieldValue('exchange_rate')
+      ? parseFloat(form.getFieldValue('exchange_rate'))
+      : 1
+
+    let fee_return =
+      parseFloat(contract.campaign_funding) *
+      (parseFloat(contract.investor_return) / 100)
+    const total_payout =
+      parseFloat(contract.campaign_funding) + fee_kb + fee_return
+    const total_payout_idr = total_payout * exchange_rate
+
+    form.setFieldValue('wakalah_fee', fee_kb)
+    form.setFieldValue('investor_fee', fee_return)
+    form.setFieldValue('total_payout', total_payout)
+    form.setFieldValue('total_payout_idr', total_payout_idr)
   }
 
   return (
@@ -34,31 +95,76 @@ const CampaignContractForm = () => {
           </Form.Item>
         </Col>
         <Col span={8}>
-          <Form.Item
-            label="Current Funding Amount"
-            name="current_funding_amount"
-          >
-            <Input readOnly />
+          <Form.Item label="Current Funding Amount" name="campaign_funding">
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value: any) => {
+                let amount = new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'SGD',
+                })
+
+                return amount.format(value)
+              }}
+            />
           </Form.Item>
         </Col>
         <Col span={8}>
           <Form.Item label="Wakalah Fee (Kapital Boost)" name="wakalah_fee">
-            <Input readOnly />
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value) =>
+                `SGD ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+              onChange={(v: any) => calculatePayout(v)}
+            />
           </Form.Item>
         </Col>
         <Col span={8}>
-          <Form.Item label="Wakalah Fee (Investor)" name="return">
-            <Input readOnly />
+          <Form.Item label="Wakalah Fee (Investor)" name="investor_fee">
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value: any) => {
+                let amount = new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'SGD',
+                })
+
+                return amount.format(value)
+              }}
+            />
           </Form.Item>
         </Col>
         <Col span={8}>
           <Form.Item label="Total Payout" name="total_payout">
-            <Input readOnly />
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value: any) => {
+                let amount = new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'SGD',
+                })
+
+                return amount.format(value)
+              }}
+            />
           </Form.Item>
         </Col>
         <Col span={8}>
           <Form.Item label="Total Payout (IDR)" name="total_payout_idr">
-            <Input readOnly />
+            {/* <Input readOnly /> */}
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value: any) => {
+                let amount = new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'IDR',
+                })
+
+                return amount.format(value)
+              }}
+            />
           </Form.Item>
         </Col>
       </Row>
@@ -69,7 +175,7 @@ const CampaignContractForm = () => {
 
       <Row gutter={[30, 0]}>
         <Col span={12}>
-          <Form.Item label="Company Name" name="company_name">
+          <Form.Item label="Company Name" name="company_name_en">
             <Input />
           </Form.Item>
         </Col>
@@ -107,65 +213,82 @@ const CampaignContractForm = () => {
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Customer Name (English)" name="customer_name">
+          <Form.Item label="Customer Name (English)" name="customer_name_en">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Customer Name (Bahasa)" name="customer_name_id">
+          <Form.Item label="Customer Name (Bahasa)" name="customer_name_ba">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Admin Fee (%)" name="admin_fee">
+          <Form.Item label="Admin Fee (%)" name="admin_fee_percentage">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Admin Fee (%)" name="admin_fee">
+          <Form.Item
+            label="Agent Fee (%)"
+            name="investor_return"
+            tooltip="Filed not found (return can get in campaign)"
+          >
+            {/* Added the campaign information to contract object - setting it in API */}
             <Input disabled />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item label="Exchange Rate" name="exchange_rate">
-            <Input />
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value) =>
+                `IDR ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+            />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Variable Funding" name="variable_funding">
-            <Input />
+          <Form.Item label="Variable Funding" name="asset_cost_local">
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value) =>
+                `IDR ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+            />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Alamat Perusahaan" name="company_address">
+          <Form.Item label="Alamat Perusahaan" name="transfer_info_en">
             <Input.TextArea rows={2} />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item
             label="Bilyet Giro Information (Bahasa)"
-            name="bilyet_giro"
+            name="transfer_info_ba"
           >
             <Input.TextArea rows={2} />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Syarat 1" name="syarat_1">
+          <Form.Item label="Syarat 1" name="other_en">
             <Input.TextArea rows={2} />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Syarat 2" name="syarat_2">
+          <Form.Item label="Syarat 2" name="payment_method_ba">
             <Input.TextArea rows={2} />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="UKM Phone Number" name="ukm_phone_number">
+          <Form.Item label="UKM Phone Number" name="payment_method_en">
             <Input.TextArea rows={2} />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Other Requirements" name="other_requirements">
+          <Form.Item label="Other Requirements" name="other_ba">
             <Input.TextArea rows={2} />
           </Form.Item>
         </Col>
@@ -177,19 +300,19 @@ const CampaignContractForm = () => {
 
       <Row gutter={[30, 0]}>
         <Col span={12}>
-          <Form.Item label="Asset to be purchased" name="asset_purchased">
+          <Form.Item label="Asset to be purchased" name="purchase_asset_en">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Asset to be purchased ID" name="asset_purchased_id">
+          <Form.Item label="Asset to be purchased ID" name="purchase_asset_ba">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item
             label="Campaign Country Currency"
-            name="campaign_country_currency"
+            name="campaign_local_currency"
           >
             <Input />
           </Form.Item>
@@ -197,7 +320,7 @@ const CampaignContractForm = () => {
         <Col span={12}>
           <Form.Item
             label="Purchase cost contribution date / Disburstment date"
-            name="disburstment_date"
+            name="purchase_date"
           >
             <Input />
           </Form.Item>
@@ -220,45 +343,45 @@ const CampaignContractForm = () => {
           </Form.Item>
         </Col>
         <Col span={8}>
-          <Form.Item label="Sub-Agency Fees (%)" name="agency_fees">
+          <Form.Item label="Sub-Agency Fees (%)" name="sub_agent_fee">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item
             label="Receivable Amount as per invoice"
-            name="receivable_amount"
+            name="receivable_amount_invoice"
           >
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item
-            label="Receivable Amount as per invoice (IDR)"
-            name="receivable_amount_id"
+            label="Receivable Amount as per invoice (SGD)"
+            name="receivable_amount_sgd"
           >
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Akta Number" name="akta_number">
+          <Form.Item label="Akta Number" name="akta_no_en">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Akta Number (ID)" name="akta_number_id">
+          <Form.Item label="Akta Number (ID)" name="akta_no_ba">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Underlying Document" name="underlying_document">
+          <Form.Item label="Underlying Document" name="underlying_document_en">
             <Input />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item
             label="Underlying Document (ID)"
-            name="underlying_document_id"
+            name="underlying_document_ba"
           >
             <Input />
           </Form.Item>
@@ -270,7 +393,12 @@ const CampaignContractForm = () => {
       <Row>
         <Col span={12}>
           <Space>
-            <Button type="primary" htmlType="submit" style={{ width: '185px' }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              style={{ width: '185px' }}
+              loading={loading}
+            >
               Submit
             </Button>
             <Button>Reset</Button>

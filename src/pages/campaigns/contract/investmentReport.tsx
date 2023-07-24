@@ -1,85 +1,94 @@
+import { Api } from '@/api/api'
+import { currency } from '@/utils/helpers'
 import {
   DeleteOutlined,
   EditOutlined,
+  FieldNumberOutlined,
+  FieldTimeOutlined,
+  LoadingOutlined,
   OrderedListOutlined,
   SendOutlined,
 } from '@ant-design/icons'
-import { Button, Divider, InputNumber, Space, Table, Tooltip } from 'antd'
+import {
+  Button,
+  Divider,
+  InputNumber,
+  Modal,
+  Space,
+  Table,
+  Timeline,
+  Tooltip,
+  Typography,
+} from 'antd'
+import { useEffect, useState } from 'react'
 
-const InvestmentReport = () => {
-  const dataSource = [
-    {
-      key: '1',
-      full_name: 'Mike',
-      email: 'mike@mail.com',
-      amount: 50000,
-      invest_date: '2021-11-25',
-    },
-    {
-      key: '2',
-      full_name: 'John',
-      email: 'john@mail.com',
-      amount: 13500,
-      invest_date: '2021-11-25',
-    },
-    {
-      key: '3',
-      full_name: 'Rully',
-      email: 'rully@mail.com',
-      amount: 5750,
-      invest_date: '2021-11-25',
-    },
-    {
-      key: '4',
-      full_name: 'Mark',
-      email: 'mark@mail.com',
-      amount: 370,
-      invest_date: '2021-11-25',
-    },
-  ]
+const { Text, Link } = Typography
+
+interface Iprops {
+  user: any
+  slug: any
+}
+
+const InvestmentReport = ({ user, slug }: Iprops) => {
+  const [investors, setInvestors] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [openLogLoading, setOpenLogLoading] = useState(false)
+
+  const initData = () => {
+    setLoading(true)
+
+    Api.get(`campaign/investors/${slug}`, user?.token)
+      .then((res: any) => {
+        console.log(res)
+        setInvestors(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    initData()
+  }, [])
+
+  const openLogs = (data: any) => {
+    // api to get the data of logs
+    setIsModalOpen(true)
+    setOpenLogLoading(true)
+
+    setTimeout(() => {
+      setOpenLogLoading(false)
+    }, 2500)
+  }
 
   const columns = [
     {
-      title: 'No.',
-      dataIndex: 'key',
-      key: 'key',
-      render: (key: any, data: any, idx: number) => {
-        return <>{idx + 1}</>
-      },
-    },
-    {
       title: 'Name',
-      dataIndex: 'full_name',
-      key: 'full_name',
+      dataIndex: 'user',
+      key: 'user',
       width: '25%',
+      render: (user: any) => user?.ic_name,
     },
     {
       title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
+      dataIndex: 'user',
+      key: 'user',
       width: '25%',
+      render: (user: any) => user?.email,
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
       width: '15%',
-      render: (amount: number) => (
-        <InputNumber
-          style={{ width: '100%' }}
-          defaultValue={amount}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
-      ),
+      render: (amount: number) => currency(amount),
     },
     {
       title: 'Invest Date',
-      dataIndex: 'invest_date',
-      key: 'invest_date',
+      dataIndex: 'created_at',
+      key: 'created_at',
     },
     {
       title: '',
@@ -88,14 +97,28 @@ const InvestmentReport = () => {
       width: '150px',
       render: (data: any) => (
         <Space size={`small`} className="space-end">
-          <Tooltip title="Send email contract">
-            <Button size="small">
+          <Tooltip
+            title={
+              data.has_contract
+                ? data.sent_contract
+                  ? 'Contract has been sent'
+                  : 'Send contract to user'
+                : 'The contract has not been made'
+            }
+          >
+            <Button
+              type="primary"
+              size="small"
+              disabled={
+                !data.has_contract ? true : data.sent_contract ? true : false
+              }
+            >
               <SendOutlined />
             </Button>
           </Tooltip>
           <Tooltip title="Contract logs">
-            <Button size="small">
-              <OrderedListOutlined />
+            <Button size="small" onClick={() => openLogs(data)}>
+              <FieldTimeOutlined />
             </Button>
           </Tooltip>
         </Space>
@@ -108,7 +131,64 @@ const InvestmentReport = () => {
       <Divider orientation="left" dashed>
         Investor Report
       </Divider>
-      <Table dataSource={dataSource} columns={columns} />
+      <Table dataSource={investors} columns={columns} loading={loading} />
+
+      <Modal
+        title="Eversign Document"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={false}
+      >
+        {openLogLoading ? (
+          <div className="text-center my-5">
+            <LoadingOutlined style={{ fontSize: '2.5rem' }} />
+            <h3>Fetching data..</h3>
+          </div>
+        ) : (
+          <>
+            <h4>Title : 20 PT BMJ (9) - Norliana Mohammad Hamber</h4>
+            <h4 className="m-0">Signer</h4>
+            <ol className="mt-0 mb-2">
+              <li>
+                norliana.hamber@gmail.com{' '}
+                <Text type="danger">[not signed yet]</Text>
+              </li>
+              <li>
+                erly@kapitalboost.com <Text type="success">[signed]</Text>
+              </li>
+            </ol>
+            <h4>Logs</h4>
+            <Timeline
+              items={[
+                {
+                  color: 'blue',
+                  children: (
+                    <>
+                      <p className="p-0 m-0">
+                        document_sent - norliana.hamber@gmail.com
+                      </p>
+                      <Text type="secondary">
+                        <small>2021-11-23 17:26:02</small>
+                      </Text>
+                    </>
+                  ),
+                },
+                {
+                  color: 'gray',
+                  children: (
+                    <>
+                      <p className="p-0 m-0">document_created -</p>
+                      <Text type="secondary">
+                        <small>2021-11-23 17:26:01</small>
+                      </Text>
+                    </>
+                  ),
+                },
+              ]}
+            />
+          </>
+        )}
+      </Modal>
     </>
   )
 }

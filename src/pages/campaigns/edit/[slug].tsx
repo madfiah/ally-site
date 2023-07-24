@@ -86,7 +86,7 @@ const NewCampaign = ({ user }: IProps) => {
             : null,
           logo: res.data.logo === null ? '' : res.data.logo,
         }
-        console.log(params)
+        
         form.setFieldsValue(params)
         setDescription(params.description)
         setCampaign(params)
@@ -121,7 +121,6 @@ const NewCampaign = ({ user }: IProps) => {
         }
       })
       .catch((err) => {
-        console.log(err)
         setFetchError({
           show: true,
           message: err.data.message,
@@ -133,7 +132,6 @@ const NewCampaign = ({ user }: IProps) => {
   const loadCampaignOptions = () => {
     Api.get(`campaign/options`, user.token)
       .then((res: any) => {
-        console.log(res)
         setCampaignOptions(res.data)
       })
       .catch((err: any) => {

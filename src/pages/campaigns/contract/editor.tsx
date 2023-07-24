@@ -3,12 +3,15 @@ import { useEffect, useState } from 'react'
 
 interface MainProps {
   content: string
+  onChangeContent: any
 }
 
-const ContractEditorForm = ({ content }: MainProps) => {
+const ContractEditorForm = ({ content, onChangeContent }: MainProps) => {
   const [loading, setLoading] = useState(true)
+
   const handleEditorChange = (content: any, editor: any) => {
     console.log('Content was updated:', content)
+    onChangeContent(content)
   }
 
   useEffect(() => {
