@@ -106,7 +106,7 @@ const ContractEditor = ({ user, contract, slug }: IProps) => {
       user?.token,
       user?.id,
       {
-        content: mainContent,
+        main_content: mainContent,
         sign_content: signContent,
         attachment_content: attachmentContent,
       }
