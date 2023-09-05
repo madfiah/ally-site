@@ -1,6 +1,7 @@
 import CredentialsProvider from 'next-auth/providers/credentials'
 import NextAuth from 'next-auth'
 import type { NextAuthOptions } from 'next-auth'
+import Router from 'next/router'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 

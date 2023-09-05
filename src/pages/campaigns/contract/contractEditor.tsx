@@ -1,13 +1,28 @@
 import { Api } from '@/api/api'
+import { contract_types } from '@/utils/contract-types'
 import {
   BlockOutlined,
+  CheckCircleOutlined,
+  CheckOutlined,
+  DotChartOutlined,
+  DownloadOutlined,
+  EyeFilled,
+  EyeTwoTone,
+  FileDoneOutlined,
+  FilePdfOutlined,
   LoadingOutlined,
+  MoreOutlined,
+  PlusOutlined,
   ReloadOutlined,
+  RetweetOutlined,
+  SaveFilled,
+  SettingOutlined,
 } from '@ant-design/icons'
 import {
   Button,
   Col,
   Divider,
+  Dropdown,
   Input,
   List,
   message,
@@ -21,6 +36,8 @@ import {
   Typography,
 } from 'antd'
 import { useEffect, useState } from 'react'
+import ListOfFileContracts from './components/listOfFileContracts'
+import InvestorPopup from './components/investorPopup'
 import ContractEditorForm from './editor'
 
 interface IProps {
@@ -29,19 +46,34 @@ interface IProps {
   slug: any
 }
 
-const ContractEditor = ({ user, contract, slug }: IProps) => {
+const BE_URL = process.env.NEXT_PUBLIC_BE_URL
+
+const ContractEditor = ({ user, slug }: IProps) => {
   const [loading, setLoading] = useState(false)
   const [saveLoading, setSaveLoading] = useState(false)
   const [savePreviewLoading, setSavePreviewLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [templates, setTemplates] = useState([])
+
+  const [fileContract, setFileContract] = useState<any>(null)
   const [mainContent, setMainContent] = useState('')
-  const [signContent, setSignContent] = useState(contract?.sign_content)
+  const [signContent, setSignContent] = useState('')
+  const [attachmentContent, setAttachmentContent] = useState('')
+
   const [investmentOption, setInvestmentOption] = useState([])
-  const [attachmentContent, setAttachmentContent] = useState(
-    contract?.attachment_content
-  )
   const [investorId, setInvestorId] = useState<any>(null)
+
+  const [contractType, setContractType] = useState<any>(null)
+  const [campaignContracts, setCampaignContracts] = useState([])
+  const [openModalFileContract, setOpenModalFileContract] = useState(false)
+
+  const [isModalOpenInvestor, setIsModalOpenInvestor] = useState<any>(null)
+
+  const initContracts = () => {
+    Api.get(`campaign/file-contract/${slug}`, user?.token).then((res: any) => {
+      setCampaignContracts(res.data)
+    })
+  }
 
   const initTemplate = () => {
     Api.get(`campaign/contract/templates`, user?.token)
@@ -67,13 +99,15 @@ const ContractEditor = ({ user, contract, slug }: IProps) => {
   }
 
   useEffect(() => {
+    initContracts()
     initTemplate()
     initInvestments()
-
-    if (contract) {
-      setMainContent(contract.content)
-    }
   }, [])
+
+  const onRefresh = () => {
+    initTemplate()
+    initInvestments()
+  }
 
   const selectTemplate = (template: any) => {
     setLoading(true)
@@ -98,72 +132,201 @@ const ContractEditor = ({ user, contract, slug }: IProps) => {
     setIsModalOpen(false)
   }
 
-  const onSave = () => {
+  const onSave = (preview = false) => {
     setSaveLoading(true)
 
-    Api.post(
-      `campaign/contract/content/${contract?.id}/save`,
-      user?.token,
-      user?.id,
-      {
-        main_content: mainContent,
-        sign_content: signContent,
-        attachment_content: attachmentContent,
-      }
-    )
+    Api.post(`campaign/file-contract/${slug}`, user?.token, user?.id, {
+      file_contract_id: fileContract?.id,
+      contract_type: contractType,
+      main_content: mainContent,
+      signature_content: signContent,
+      appendix_content: attachmentContent,
+    })
       .then((res: any) => {
-        console.log(res)
+        const { file_contract, contract_content } = res.data
         message.success({ content: res.message })
+        // re init data contracts
+        initContracts()
+        setMainContent(contract_content.main)
+        setSignContent(contract_content.signature)
+        setAttachmentContent(contract_content.appendix)
+        setFileContract(file_contract)
+
+        if (preview) {
+          if (fileContract.type.toLowerCase().includes('investor')) {
+            setIsModalOpenInvestor(true)
+          } else {
+            window.open(
+              `${BE_URL}/preview-file-contract/${file_contract.id}?token=${user?.token}&campaign_contract_id=${file_contract.id}`,
+              '_blank'
+            )
+          }
+        }
       })
       .catch((err) => {
-        message.error({ content: err.data.message })
-        console.log(err)
+        if (err) {
+          message.error({ content: err.data.message })
+        } else {
+          message.error({ content: 'Fatal Error : Something went wrong' })
+        }
       })
       .finally(() => setSaveLoading(false))
   }
 
+  const handleChangeType = (value: string) => {
+    setContractType(value)
+  }
+
+  const handleSelectInvestor = (value: string) => {
+    console.log('Investor ID : ', value)
+    setInvestorId(value)
+  }
+
+  const changeContractContent = (id: any) => {
+    setOpenModalFileContract(false)
+    setLoading(true)
+
+    Api.get(`campaign/file-contract/detail/${id}`, user?.token)
+      .then((res: any) => {
+        const { file_contract, contract_content } = res.data
+
+        setMainContent(contract_content.main)
+        setSignContent(contract_content.signature)
+        setAttachmentContent(contract_content.appendix)
+        setFileContract(file_contract)
+        setContractType(file_contract.type)
+      })
+      .finally(() => setLoading(false))
+  }
+
+  const newContract = () => {
+    setLoading(true)
+
+    setMainContent('')
+    setSignContent('')
+    setAttachmentContent('')
+    setFileContract(null)
+    setContractType(null)
+
+    setTimeout(() => {
+      setLoading(false)
+    }, 500)
+  }
+
+  const onNextPreview = () => {
+    window.open(
+      `${BE_URL}/preview-file-contract/${fileContract.id}?token=${user?.token}&campaign_contract_id=${fileContract.id}&preview_investment_id=${investorId}`,
+      '_blank'
+    )
+
+    setTimeout(() => {
+      setIsModalOpenInvestor(false)
+    }, 500)
+  }
+
+  const items = [
+    {
+      key: '01',
+      label: (
+        <span onClick={newContract}>
+          <Space size={10}>
+            <PlusOutlined />
+            <>{`New Contract`}</>
+          </Space>
+        </span>
+      ),
+    },
+    {
+      key: '0',
+      label: (
+        <span onClick={() => setOpenModalFileContract(true)}>
+          <Space size={10}>
+            <RetweetOutlined />
+            <>{`Change Contract`}</>
+          </Space>
+        </span>
+      ),
+    },
+    {
+      key: '1',
+      label: (
+        <span onClick={() => onSave(true)}>
+          <Space size={10}>
+            <FileDoneOutlined />
+            <>{`Save & Preview`}</>
+          </Space>
+        </span>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <span>
+          <Space size={10}>
+            <FilePdfOutlined />
+            <>{`Generate`}</>
+          </Space>
+        </span>
+      ),
+    },
+    {
+      key: '3',
+      label: (
+        <span>
+          <Space size={10}>
+            <DownloadOutlined />
+            <>{`Download`}</>
+          </Space>
+        </span>
+      ),
+    },
+  ]
+
   return (
     <>
-      <Divider orientation="left" dashed />
-      <Row>
-        <Col span={12}>
-          <Button icon={<BlockOutlined />} onClick={showModal}>
-            Change Template
-          </Button>
-        </Col>
-        <Col span={12}>
-          <Space className="space-end">
-            <Select
-              allowClear
-              showSearch
-              style={{ width: 200 }}
-              placeholder="Select a person"
-              options={investmentOption}
-              onChange={(v) => setInvestorId(v === undefined ? null : v)}
-              onClear={() => setInvestorId(null)}
-            />
-            <Tooltip
-              title={
-                investorId
-                  ? 'Save and priview the contract'
-                  : 'Please select investor first'
-              }
-            >
-              <Button
-                disabled={investorId === null || saveLoading}
-              >{`Save & Preview`}</Button>
-            </Tooltip>
-            <Button
-              type="primary"
-              loading={saveLoading}
-              disabled={savePreviewLoading}
-              onClick={onSave}
-            >{`Save`}</Button>
-          </Space>
-        </Col>
-      </Row>
+      {!loading && (
+        <>
+          <Divider orientation="left" dashed />
+          <Row>
+            <Col span={12}>
+              <Space size={15}>
+                <Button icon={<BlockOutlined />} onClick={showModal}>
+                  Change Template
+                </Button>
+                <Select
+                  showSearch
+                  allowClear
+                  value={contractType}
+                  placeholder="Select Type of Contract"
+                  style={{ width: 200 }}
+                  onChange={handleChangeType}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').includes(input)
+                  }
+                  options={contract_types}
+                />
+              </Space>
+            </Col>
+            <Col span={12}>
+              <Space className="space-end">
+                <Button
+                  type="primary"
+                  loading={saveLoading}
+                  disabled={savePreviewLoading || contractType === null}
+                  onClick={() => onSave(false)}
+                  icon={<CheckOutlined />}
+                >{`Save Contract`}</Button>
 
-      <Divider orientation="left" dashed />
+                <Dropdown menu={{ items }} placement="bottomRight">
+                  <Tooltip title={`More menu`}>
+                    <Button icon={<MoreOutlined />}></Button>
+                  </Tooltip>
+                </Dropdown>
+              </Space>
+            </Col>
+          </Row>
+        </>
+      )}
 
       {loading ? (
         <div className="text-center my-5">
@@ -171,44 +334,51 @@ const ContractEditor = ({ user, contract, slug }: IProps) => {
           <h3>Please Wait</h3>
         </div>
       ) : (
-        <Tabs
-          defaultActiveKey="1"
-          style={{ marginBottom: 32 }}
-          items={[
-            {
-              label: `Main Content`,
-              key: 'main-content',
-              children: (
-                <ContractEditorForm
-                  content={mainContent}
-                  onChangeContent={(content: string) => setMainContent(content)}
-                />
-              ),
-            },
-            {
-              label: `Sign Content`,
-              key: 'sign content',
-              children: (
-                <ContractEditorForm
-                  content={signContent}
-                  onChangeContent={(content: string) => setSignContent(content)}
-                />
-              ),
-            },
-            {
-              label: `Attachment Content`,
-              key: 'attachment-content',
-              children: (
-                <ContractEditorForm
-                  content={attachmentContent}
-                  onChangeContent={(content: string) =>
-                    setAttachmentContent(content)
-                  }
-                />
-              ),
-            },
-          ]}
-        />
+        <>
+          <Divider orientation="left" dashed />
+          <Tabs
+            defaultActiveKey="1"
+            style={{ marginBottom: 32 }}
+            items={[
+              {
+                label: `Main Content`,
+                key: 'main-content',
+                children: (
+                  <ContractEditorForm
+                    content={mainContent}
+                    onChangeContent={(content: string) =>
+                      setMainContent(content)
+                    }
+                  />
+                ),
+              },
+              {
+                label: `Sign Content`,
+                key: 'sign content',
+                children: (
+                  <ContractEditorForm
+                    content={signContent}
+                    onChangeContent={(content: string) =>
+                      setSignContent(content)
+                    }
+                  />
+                ),
+              },
+              {
+                label: `Attachment Content`,
+                key: 'attachment-content',
+                children: (
+                  <ContractEditorForm
+                    content={attachmentContent}
+                    onChangeContent={(content: string) =>
+                      setAttachmentContent(content)
+                    }
+                  />
+                ),
+              },
+            ]}
+          />
+        </>
       )}
 
       <Modal
@@ -243,6 +413,21 @@ const ContractEditor = ({ user, contract, slug }: IProps) => {
           )}
         />
       </Modal>
+
+      <ListOfFileContracts
+        fileContracts={campaignContracts}
+        isOpen={openModalFileContract}
+        closeModal={() => setOpenModalFileContract(false)}
+        selectContract={changeContractContent}
+      />
+
+      <InvestorPopup
+        isOpen={isModalOpenInvestor}
+        closeModal={() => setIsModalOpenInvestor(false)}
+        selectInvestor={handleSelectInvestor}
+        investmentOption={investmentOption}
+        onNext={onNextPreview}
+      />
     </>
   )
 }

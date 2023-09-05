@@ -10,8 +10,9 @@ const ContractEditorForm = ({ content, onChangeContent }: MainProps) => {
   const [loading, setLoading] = useState(true)
 
   const handleEditorChange = (content: any, editor: any) => {
-    console.log('Content was updated:', content)
     onChangeContent(content)
+
+    return false
   }
 
   useEffect(() => {
@@ -25,8 +26,8 @@ const ContractEditorForm = ({ content, onChangeContent }: MainProps) => {
 
       <div style={{ visibility: `${loading ? 'hidden' : 'visible'}` }}>
         <Editor
-          onChange={(e, d) => console.log(e.target.value, d)}
-          initialValue={content}
+          // onChange={(e, d) => console.log('changed : ', d)}
+          value={content}
           onInit={(e, editor) => {
             setLoading(false)
           }}

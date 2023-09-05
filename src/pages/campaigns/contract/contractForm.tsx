@@ -23,7 +23,6 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    console.log(contract)
     form.setFieldsValue(contract)
     calculatePayout('0')
   }, [])
@@ -54,22 +53,26 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
   }
 
   const calculatePayout = (value: string) => {
-    const fee_kb = value ? parseFloat(parseFloat(value).toFixed(2)) : 0
-    const exchange_rate = form.getFieldValue('exchange_rate')
-      ? parseFloat(form.getFieldValue('exchange_rate'))
-      : 1
+    if (contract) {
+      const fee_kb = value ? parseFloat(parseFloat(value).toFixed(2)) : 0
+      const exchange_rate = form.getFieldValue('exchange_rate')
+        ? parseFloat(form.getFieldValue('exchange_rate'))
+        : 1
 
-    let fee_return =
-      parseFloat(contract.campaign_funding) *
-      (parseFloat(contract.investor_return) / 100)
-    const total_payout =
-      parseFloat(contract.campaign_funding) + fee_kb + fee_return
-    const total_payout_idr = total_payout * exchange_rate
+      let fee_return =
+        parseFloat(contract.campaign_funding) *
+        (parseFloat(contract.investor_return) / 100)
+      const total_payout =
+        parseFloat(contract.campaign_funding) + fee_kb + fee_return
+      const total_payout_idr = total_payout * exchange_rate
 
-    form.setFieldValue('wakalah_fee', fee_kb)
-    form.setFieldValue('investor_fee', fee_return)
-    form.setFieldValue('total_payout', total_payout)
-    form.setFieldValue('total_payout_idr', total_payout_idr)
+      form.setFieldValue('wakalah_fee', fee_kb)
+      form.setFieldValue('investor_fee', fee_return)
+      form.setFieldValue('total_payout', total_payout)
+      form.setFieldValue('total_payout_idr', total_payout_idr)
+    }
+
+    return false
   }
 
   return (
