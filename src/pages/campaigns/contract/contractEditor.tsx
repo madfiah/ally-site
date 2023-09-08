@@ -39,6 +39,7 @@ import { useEffect, useState } from 'react'
 import ListOfFileContracts from './components/listOfFileContracts'
 import InvestorPopup from './components/investorPopup'
 import ContractEditorForm from './editor'
+import type { SelectProps } from 'antd'
 
 interface IProps {
   user: any
@@ -60,8 +61,10 @@ const ContractEditor = ({ user, slug }: IProps) => {
   const [signContent, setSignContent] = useState('')
   const [attachmentContent, setAttachmentContent] = useState('')
 
-  const [investmentOption, setInvestmentOption] = useState([])
-  const [investorId, setInvestorId] = useState<any>(null)
+  const [investmentOption, setInvestmentOption] = useState<
+    SelectProps['options']
+  >([])
+  const [investorId, setInvestorId] = useState('')
 
   const [contractType, setContractType] = useState<any>(null)
   const [campaignContracts, setCampaignContracts] = useState([])
@@ -224,6 +227,33 @@ const ContractEditor = ({ user, slug }: IProps) => {
     }, 500)
   }
 
+  const generateContract = () => {
+    setLoading(true)
+
+    Api.post(
+      `campaign/file-contract/generate/${fileContract?.id}`,
+      user?.token,
+      null,
+      {
+        investment_id: investorId,
+      }
+    )
+      .then((res: any) => {
+        message.success({ content: 'Contract was successfully generated' })
+
+        setFileContract(res.data)
+        downloadFile(res.data.generated_url)
+      })
+      .catch((err: any) => {
+        message.error({ content: 'Ops, Failed to generate Contract' })
+      })
+      .finally(() => setLoading(false))
+  }
+
+  const downloadFile = (file_url: string) => {
+    window.open(file_url, '_blank')
+  }
+
   const items = [
     {
       key: '01',
@@ -247,40 +277,62 @@ const ContractEditor = ({ user, slug }: IProps) => {
         </span>
       ),
     },
-    {
-      key: '1',
-      label: (
-        <span onClick={() => onSave(true)}>
-          <Space size={10}>
-            <FileDoneOutlined />
-            <>{`Save & Preview`}</>
-          </Space>
-        </span>
-      ),
-    },
-    {
-      key: '2',
-      label: (
-        <span>
-          <Space size={10}>
-            <FilePdfOutlined />
-            <>{`Generate`}</>
-          </Space>
-        </span>
-      ),
-    },
-    {
-      key: '3',
-      label: (
-        <span>
-          <Space size={10}>
-            <DownloadOutlined />
-            <>{`Download`}</>
-          </Space>
-        </span>
-      ),
-    },
   ]
+
+  // add new menu items when file contract is not null
+  if (fileContract) {
+    items.push(
+      {
+        key: '1',
+        label: (
+          <span onClick={() => onSave(true)}>
+            <Space size={10}>
+              <FileDoneOutlined />
+              <>{`Save & Preview`}</>
+            </Space>
+          </span>
+        ),
+      },
+      {
+        key: '2',
+        label: (
+          <>
+            {fileContract ? (
+              <span onClick={generateContract}>
+                <Space size={10}>
+                  <FilePdfOutlined />
+                  <>{`Generate`}</>
+                </Space>
+              </span>
+            ) : (
+              <Button type="link" disabled>
+                Generate
+              </Button>
+            )}
+          </>
+        ),
+      },
+      {
+        key: '3',
+        label: (
+          <>
+            {fileContract?.generated_url ? (
+              <span onClick={() => downloadFile(fileContract.generated_url)}>
+                <Space size={10}>
+                  <DownloadOutlined />
+                  <>{`Download`}</>
+                </Space>
+              </span>
+            ) : (
+              <Button type="link" disabled>
+                Download
+              </Button>
+            )}
+          </>
+        ),
+      }
+    )
+  }
 
   return (
     <>
@@ -428,6 +480,33 @@ const ContractEditor = ({ user, slug }: IProps) => {
         investmentOption={investmentOption}
         onNext={onNextPreview}
       />
+
+      <Modal
+        title="Select Investor"
+        open={isModalOpenInvestor}
+        onCancel={() => setIsModalOpenInvestor(false)}
+        footer={null}
+        centered
+        width={375}
+      >
+        <Space direction="vertical" size={15} style={{ marginTop: 15 }}>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Type of Contract"
+            style={{ width: 325 }}
+            onChange={handleSelectInvestor}
+            filterOption={(input, option) =>
+              (option?.label ? option.label.toString() : '').includes(input)
+            }
+            options={investmentOption}
+          />
+
+          <Button type="primary" onClick={onNextPreview}>
+            Next to Preview
+          </Button>
+        </Space>
+      </Modal>
     </>
   )
 }

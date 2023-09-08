@@ -1,3 +1,4 @@
+import { dynamicMenu } from '@/utils/dynamicData'
 import { Editor } from '@tinymce/tinymce-react'
 import { useEffect, useState } from 'react'
 
@@ -54,6 +55,14 @@ const ContractEditorForm = ({ content, onChangeContent }: MainProps) => {
               'help',
               'wordcount',
             ],
+            menubar: 'file edit view insert format tools table custom',
+            menu: {
+              custom: {
+                title: 'Dynamic Data',
+                items:
+                  'company usermenu campaignmenu masterpayoutmenu contractautomaticmenu contractgeneralmenu contractassetmenu contractassetsgdmenu contractinvoicemenu',
+              },
+            },
             toolbar:
               'undo redo | blocks | ' +
               'bold italic forecolor | alignleft aligncenter ' +
@@ -61,6 +70,8 @@ const ContractEditorForm = ({ content, onChangeContent }: MainProps) => {
               'removeformat | help',
             content_style:
               'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+
+            setup: dynamicMenu,
           }}
           onEditorChange={handleEditorChange}
         />
