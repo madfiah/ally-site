@@ -1,19 +1,24 @@
 import { Api } from '@/api/api'
 import { currency } from '@/utils/helpers'
 import {
+  CheckOutlined,
   DeleteOutlined,
   EditOutlined,
   FieldNumberOutlined,
   FieldTimeOutlined,
   LoadingOutlined,
   OrderedListOutlined,
+  ReloadOutlined,
   SendOutlined,
 } from '@ant-design/icons'
 import {
   Button,
+  Col,
   Divider,
   InputNumber,
   Modal,
+  Row,
+  Select,
   Space,
   Table,
   Timeline,
@@ -29,11 +34,20 @@ interface Iprops {
   slug: any
 }
 
+interface DataType {
+  key: React.Key
+  name: string
+  age: number
+  address: string
+}
+
 const InvestmentReport = ({ user, slug }: Iprops) => {
   const [investors, setInvestors] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [openLogLoading, setOpenLogLoading] = useState(false)
+  const [contractFileId, setContractFileId] = useState<any>(null)
+  const [investorsId, setInvestorsId] = useState<any>([])
 
   const initData = () => {
     setLoading(true)
@@ -126,12 +140,66 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
     },
   ]
 
+  const rowSelection = {
+    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        'selectedRows: ',
+        selectedRows
+      )
+    },
+    getCheckboxProps: (record: DataType) => ({
+      disabled: record.name === 'Disabled User', // Column configuration not to be checked
+      name: record.name,
+    }),
+  }
+
   return (
     <>
+      <Row>
+        <Col span={12}>
+          <Space size={15}>
+            <Select
+              showSearch
+              allowClear
+              placeholder="Select Contract"
+              style={{ width: 200 }}
+              options={[
+                { label: 'Investor (IDR)', value: 12 },
+                { label: 'Investor (SGD)', value: 13 },
+              ]}
+            />
+          </Space>
+        </Col>
+        <Col span={12}>
+          <Space className="space-end">
+            <Button
+              type="primary"
+              icon={<SendOutlined />}
+              disabled={contractFileId === null || investorsId.length === 0}
+            >{`Send Contract`}</Button>
+            <Button
+              onClick={initData}
+              icon={<ReloadOutlined />}
+            >{`Refresh`}</Button>
+          </Space>
+        </Col>
+      </Row>
+
       <Divider orientation="left" dashed>
-        Investor Report
+        Campaign Investors
       </Divider>
-      <Table dataSource={investors} columns={columns} loading={loading} />
+
+      <Table
+        rowKey={`id`}
+        rowSelection={{
+          type: 'checkbox',
+          ...rowSelection,
+        }}
+        dataSource={investors}
+        columns={columns}
+        loading={loading}
+      />
 
       <Modal
         title="Eversign Document"

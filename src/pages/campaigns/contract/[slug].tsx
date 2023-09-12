@@ -97,7 +97,7 @@ const CampaignContract = ({ user }: IProps) => {
             {
               label: `BD/Analyst`,
               key: 'bd_analyst',
-              children: <TeamInspector />,
+              children: <TeamInspector user={user} slug={slug} />,
             },
           ]}
         />
