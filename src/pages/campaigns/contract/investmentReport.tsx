@@ -2,6 +2,7 @@ import { Api } from '@/api/api'
 import { currency } from '@/utils/helpers'
 import {
   CheckOutlined,
+  CloseCircleOutlined,
   DeleteOutlined,
   EditOutlined,
   FieldNumberOutlined,
@@ -25,6 +26,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd'
+import moment from 'moment'
 import { useEffect, useState } from 'react'
 
 const { Text, Link } = Typography
@@ -48,13 +50,25 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
   const [openLogLoading, setOpenLogLoading] = useState(false)
   const [contractFileId, setContractFileId] = useState<any>(null)
   const [investorsId, setInvestorsId] = useState<any>([])
+  const [contractsOption, setContractsOption] = useState<any>([])
+  const [contractLog, setContractLog] = useState<any>(null)
+
+  const initContracts = () => {
+    Api.get(`campaign/file-contract/${slug}/investor-option`, user?.token)
+      .then((res: any) => {
+        setContractsOption(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoading(false))
+  }
 
   const initData = () => {
     setLoading(true)
 
     Api.get(`campaign/investors/${slug}`, user?.token)
       .then((res: any) => {
-        console.log(res)
         setInvestors(res.data)
       })
       .catch((err) => {
@@ -65,6 +79,7 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
 
   useEffect(() => {
     initData()
+    initContracts()
   }, [])
 
   const openLogs = (data: any) => {
@@ -72,9 +87,15 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
     setIsModalOpen(true)
     setOpenLogLoading(true)
 
-    setTimeout(() => {
-      setOpenLogLoading(false)
-    }, 2500)
+    Api.get(`eversign/document/${data?.document_hash}`, user?.token)
+      .then((res: any) => {
+        console.log(res)
+        setContractLog(res)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setOpenLogLoading(false))
   }
 
   const columns = [
@@ -131,7 +152,11 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
             </Button>
           </Tooltip>
           <Tooltip title="Contract logs">
-            <Button size="small" onClick={() => openLogs(data)}>
+            <Button
+              size="small"
+              onClick={() => openLogs(data)}
+              disabled={data.sent_contract === false}
+            >
               <FieldTimeOutlined />
             </Button>
           </Tooltip>
@@ -154,6 +179,37 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
     }),
   }
 
+  const createTimeline = (data: any) => {
+    const items: any = []
+    // const logs = data.log.short((a: any, b: any) => a.timestamp - b.timestamp)
+    if (data.log.length > 0) {
+      data.log.map((log: any, idx: number) => {
+        const signer = data.signers[log.signer - 1]
+        const event = log.event.replace(/_/g, ' ')
+        const time = moment.unix(log.timestamp).format('DD-MM-YYYY h:m:s')
+
+        items.push({
+          color: 'blue',
+          children: (
+            <>
+              <p className="p-0 m-0">
+                {signer
+                  ? `${event.toUpperCase()} - ${signer.name}`
+                  : event.toUpperCase()}
+              </p>
+              <Text type="secondary">
+                {/* <small style={{ fontStyle: 'italic' }}>{time}</small> */}
+                <small>{time}</small>
+              </Text>
+            </>
+          ),
+        })
+      })
+    }
+
+    return items
+  }
+
   return (
     <>
       <Row>
@@ -164,10 +220,7 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
               allowClear
               placeholder="Select Contract"
               style={{ width: 200 }}
-              options={[
-                { label: 'Investor (IDR)', value: 12 },
-                { label: 'Investor (SGD)', value: 13 },
-              ]}
+              options={contractsOption}
             />
           </Space>
         </Col>
@@ -202,9 +255,12 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
       />
 
       <Modal
-        title="Eversign Document"
+        title={contractLog ? contractLog.title : 'Eversign Document Log'}
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setContractLog(null)
+          setIsModalOpen(false)
+        }}
         footer={false}
       >
         {openLogLoading ? (
@@ -214,46 +270,28 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
           </div>
         ) : (
           <>
-            <h4>Title : 20 PT BMJ (9) - Norliana Mohammad Hamber</h4>
-            <h4 className="m-0">Signer</h4>
-            <ol className="mt-0 mb-2">
-              <li>
-                norliana.hamber@gmail.com{' '}
-                <Text type="danger">[not signed yet]</Text>
-              </li>
-              <li>
-                erly@kapitalboost.com <Text type="success">[signed]</Text>
-              </li>
-            </ol>
-            <h4>Logs</h4>
-            <Timeline
-              items={[
-                {
-                  color: 'blue',
-                  children: (
-                    <>
-                      <p className="p-0 m-0">
-                        document_sent - norliana.hamber@gmail.com
-                      </p>
-                      <Text type="secondary">
-                        <small>2021-11-23 17:26:02</small>
+            {contractLog === null ? (
+              <div className="text-center my-5">
+                <CloseCircleOutlined style={{ fontSize: '4.5rem' }} />
+                <h3>Log not found</h3>
+              </div>
+            ) : (
+              <>
+                <h4 className="m-0">Signer</h4>
+                <ol className="mt-0 mb-2">
+                  {contractLog.signers.map((signer: any, idx: number) => (
+                    <li key={idx}>
+                      {signer.name}{' '}
+                      <Text type={signer.signed ? 'success' : 'danger'}>
+                        {signer.signed ? '[signed]' : '[not signed yet]'}
                       </Text>
-                    </>
-                  ),
-                },
-                {
-                  color: 'gray',
-                  children: (
-                    <>
-                      <p className="p-0 m-0">document_created -</p>
-                      <Text type="secondary">
-                        <small>2021-11-23 17:26:01</small>
-                      </Text>
-                    </>
-                  ),
-                },
-              ]}
-            />
+                    </li>
+                  ))}
+                </ol>
+                <h4>Logs</h4>
+                <Timeline items={createTimeline(contractLog)} />
+              </>
+            )}
           </>
         )}
       </Modal>
