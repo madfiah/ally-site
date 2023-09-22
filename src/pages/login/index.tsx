@@ -39,6 +39,7 @@ const Login = ({ without_layout }: Props) => {
       redirect: false,
       callbackUrl: '/',
     })
+
     setLoading(false)
 
     if (result?.error === 'CredentialsSignin') {
@@ -47,8 +48,6 @@ const Login = ({ without_layout }: Props) => {
       notification.success({
         message: 'Login Success',
       })
-
-      console.log(result)
 
       if (result?.url) {
         Router.push(result?.url)

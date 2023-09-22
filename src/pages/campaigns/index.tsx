@@ -217,7 +217,7 @@ const Index = ({ user }: IProps) => {
               </Tooltip>
             </Button>
           </Link>
-          <Link href={`/campaigns/contract`}>
+          <Link href={`/campaigns/contract/${data.slug}`}>
             <Button size="small">
               <Tooltip title="Contract Campaign">
                 <FileProtectOutlined />

@@ -1,14 +1,19 @@
+import { dynamicMenu } from '@/utils/dynamicData'
 import { Editor } from '@tinymce/tinymce-react'
 import { useEffect, useState } from 'react'
 
 interface MainProps {
   content: string
+  onChangeContent: any
 }
 
-const ContractEditorForm = ({ content }: MainProps) => {
+const ContractEditorForm = ({ content, onChangeContent }: MainProps) => {
   const [loading, setLoading] = useState(true)
+
   const handleEditorChange = (content: any, editor: any) => {
-    console.log('Content was updated:', content)
+    onChangeContent(content)
+
+    return false
   }
 
   useEffect(() => {
@@ -22,8 +27,8 @@ const ContractEditorForm = ({ content }: MainProps) => {
 
       <div style={{ visibility: `${loading ? 'hidden' : 'visible'}` }}>
         <Editor
-          onChange={(e, d) => console.log(e.target.value, d)}
-          initialValue={content}
+          // onChange={(e, d) => console.log('changed : ', d)}
+          value={content}
           onInit={(e, editor) => {
             setLoading(false)
           }}
@@ -50,6 +55,14 @@ const ContractEditorForm = ({ content }: MainProps) => {
               'help',
               'wordcount',
             ],
+            menubar: 'file edit view insert format tools table custom',
+            menu: {
+              custom: {
+                title: 'Dynamic Data',
+                items:
+                  'company usermenu campaignmenu masterpayoutmenu contractautomaticmenu contractgeneralmenu contractassetmenu contractassetsgdmenu contractinvoicemenu',
+              },
+            },
             toolbar:
               'undo redo | blocks | ' +
               'bold italic forecolor | alignleft aligncenter ' +
@@ -57,6 +70,8 @@ const ContractEditorForm = ({ content }: MainProps) => {
               'removeformat | help',
             content_style:
               'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+
+            setup: dynamicMenu,
           }}
           onEditorChange={handleEditorChange}
         />
