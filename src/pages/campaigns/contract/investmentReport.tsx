@@ -17,6 +17,7 @@ import {
   Col,
   Divider,
   InputNumber,
+  message,
   Modal,
   Row,
   Select,
@@ -52,6 +53,7 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
   const [investorsId, setInvestorsId] = useState<any>([])
   const [contractsOption, setContractsOption] = useState<any>([])
   const [contractLog, setContractLog] = useState<any>(null)
+  const [contractSelected, setContractSelected] = useState<any>(null)
 
   const initContracts = () => {
     Api.get(`campaign/file-contract/${slug}/investor-option`, user?.token)
@@ -82,6 +84,25 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
     initContracts()
   }, [])
 
+  const sendContract = (data: any) => {
+    setLoading(true)
+
+    Api.post(
+      `campaign/contract/investor/${data.id}/send/${contractSelected}`,
+      user?.token,
+      user?.id,
+      {}
+    )
+      .then((res) => {
+        message.success({ content: 'contract successfully sent' })
+        console.log(res)
+      })
+      .catch((err) =>
+        message.error({ content: 'Failed to send contract, please try again' })
+      )
+      .finally(() => initData())
+  }
+
   const openLogs = (data: any) => {
     // api to get the data of logs
     setIsModalOpen(true)
@@ -96,6 +117,10 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
         console.log(err)
       })
       .finally(() => setOpenLogLoading(false))
+  }
+
+  const selectContract = (v: any) => {
+    setContractSelected(v)
   }
 
   const columns = [
@@ -145,8 +170,15 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
               type="primary"
               size="small"
               disabled={
-                !data.has_contract ? true : data.sent_contract ? true : false
+                contractSelected === null
+                  ? true
+                  : data.has_contract
+                  ? true
+                  : data.sent_contract
+                  ? true
+                  : false
               }
+              onClick={() => sendContract(data)}
             >
               <SendOutlined />
             </Button>
@@ -221,16 +253,17 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
               placeholder="Select Contract"
               style={{ width: 200 }}
               options={contractsOption}
+              onChange={selectContract}
             />
           </Space>
         </Col>
         <Col span={12}>
           <Space className="space-end">
-            <Button
+            {/* <Button
               type="primary"
               icon={<SendOutlined />}
               disabled={contractFileId === null || investorsId.length === 0}
-            >{`Send Contract`}</Button>
+            >{`Send Contract`}</Button> */}
             <Button
               onClick={initData}
               icon={<ReloadOutlined />}
@@ -245,10 +278,10 @@ const InvestmentReport = ({ user, slug }: Iprops) => {
 
       <Table
         rowKey={`id`}
-        rowSelection={{
-          type: 'checkbox',
-          ...rowSelection,
-        }}
+        // rowSelection={{
+        //   type: 'checkbox',
+        //   ...rowSelection,
+        // }}
         dataSource={investors}
         columns={columns}
         loading={loading}

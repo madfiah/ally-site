@@ -37,7 +37,6 @@ import {
 } from 'antd'
 import { useEffect, useState } from 'react'
 import ListOfFileContracts from './components/listOfFileContracts'
-import InvestorPopup from './components/investorPopup'
 import ContractEditorForm from './editor'
 import type { SelectProps } from 'antd'
 
@@ -60,6 +59,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
   const [mainContent, setMainContent] = useState('')
   const [signContent, setSignContent] = useState('')
   const [attachmentContent, setAttachmentContent] = useState('')
+  const [signerPosition, setSignerPosition] = useState('')
 
   const [investmentOption, setInvestmentOption] = useState<
     SelectProps['options']
@@ -119,6 +119,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
         setMainContent(res.data.content)
         setSignContent(res.data.sign_content)
         setAttachmentContent(res.data.attachment_content)
+        setSignerPosition(res.data.signer_json)
       })
       .finally(() => setLoading(false))
   }
@@ -144,6 +145,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
       main_content: mainContent,
       signature_content: signContent,
       appendix_content: attachmentContent,
+      signer_position: signerPosition,
     })
       .then((res: any) => {
         const { file_contract, contract_content } = res.data
@@ -196,6 +198,11 @@ const ContractEditor = ({ user, slug }: IProps) => {
         setMainContent(contract_content.main)
         setSignContent(contract_content.signature)
         setAttachmentContent(contract_content.appendix)
+        setSignerPosition(
+          contract_content.signer_position
+            ? contract_content.signer_position
+            : ''
+        )
         setFileContract(file_contract)
         setContractType(file_contract.type)
       })
@@ -455,6 +462,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
                 onClick={() => selectTemplate(item)}
               >
                 <Space className="space-between">
+                  {item.id}
                   {item.name}
                   <Typography.Text>
                     <small>{item.created_at}</small>
@@ -473,14 +481,6 @@ const ContractEditor = ({ user, slug }: IProps) => {
         selectContract={changeContractContent}
       />
 
-      <InvestorPopup
-        isOpen={isModalOpenInvestor}
-        closeModal={() => setIsModalOpenInvestor(false)}
-        selectInvestor={handleSelectInvestor}
-        investmentOption={investmentOption}
-        onNext={onNextPreview}
-      />
-
       <Modal
         title="Select Investor"
         open={isModalOpenInvestor}
@@ -493,7 +493,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
           <Select
             showSearch
             allowClear
-            placeholder="Select Type of Contract"
+            placeholder="Select investor"
             style={{ width: 325 }}
             onChange={handleSelectInvestor}
             filterOption={(input, option) =>
