@@ -46,6 +46,8 @@ interface IProps {
   slug: any
 }
 
+const { Search } = Input
+
 const BE_URL = process.env.NEXT_PUBLIC_BE_URL
 
 const ContractEditor = ({ user, slug }: IProps) => {
@@ -54,6 +56,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
   const [savePreviewLoading, setSavePreviewLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [templates, setTemplates] = useState([])
+  const [filteredTemplates, setFilteredTemplates] = useState([])
 
   const [fileContract, setFileContract] = useState<any>(null)
   const [mainContent, setMainContent] = useState('')
@@ -82,6 +85,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
     Api.get(`campaign/contract/templates`, user?.token)
       .then((res: any) => {
         setTemplates(res.data)
+        setFilteredTemplates(res.data)
       })
       .catch((err) => {
         console.log(err)
@@ -341,6 +345,15 @@ const ContractEditor = ({ user, slug }: IProps) => {
     )
   }
 
+  const onSearch = (value: string) => {
+    // console.log(value)
+    const result = templates.filter((template: any) => {
+      return (template?.name ?? '').includes(value)
+    })
+    setFilteredTemplates(result)
+
+    console.log(result)
+  }
   return (
     <>
       {!loading && (
@@ -449,8 +462,19 @@ const ContractEditor = ({ user, slug }: IProps) => {
         centered
         width={640}
       >
+        <Space
+          align="end"
+          style={{ width: '100%', justifyContent: 'end', marginBottom: '15px' }}
+        >
+          <Search
+            allowClear
+            placeholder="Search contract name"
+            onSearch={onSearch}
+            style={{ width: 250 }}
+          />
+        </Space>
         <List
-          dataSource={templates}
+          dataSource={filteredTemplates}
           pagination={{
             pageSize: 8,
           }}
@@ -462,10 +486,9 @@ const ContractEditor = ({ user, slug }: IProps) => {
                 onClick={() => selectTemplate(item)}
               >
                 <Space className="space-between">
-                  {item.id}
                   {item.name}
                   <Typography.Text>
-                    <small>{item.created_at}</small>
+                    <small>{item.updated_at}</small>
                   </Typography.Text>
                 </Space>
               </Button>
