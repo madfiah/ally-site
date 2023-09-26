@@ -12,6 +12,7 @@ import {
   Space,
 } from 'antd'
 import { useState } from 'react'
+import { teamAnalyst, teamBD } from '@/utils/teamReview'
 
 interface KBProps {
   isModalOpen: boolean
@@ -37,6 +38,23 @@ const DuplicateCampaignPopup = ({
 
   const onFinish = (values: any) => {
     setLoading(true)
+
+    form.setFieldsValue(values)
+
+    // get selected analyst and bd
+    const bdData: any = teamBD.filter((opt) => opt.value === values.bd)
+    const analystData: any = teamAnalyst.filter(
+      (opt) => opt.value === values.analyst
+    )
+
+    // set pic to parameters
+    values['pic'] = {
+      name_bd: bdData[0]?.label,
+      email_bd: bdData[0]?.value,
+      name_analyst: analystData[0]?.label,
+      email_analyst: analystData[0]?.value,
+    }
+
     Api.post(`campaign/duplicate/${campaign?.slug}`, user.token, null, values)
       .then((res: any) => {
         message.success(res.message)
@@ -58,6 +76,7 @@ const DuplicateCampaignPopup = ({
       open={isModalOpen}
       onCancel={loading ? () => console.log('cannot close') : handleCancel}
       footer={false}
+      centered
     >
       <Form
         form={form}
@@ -71,7 +90,7 @@ const DuplicateCampaignPopup = ({
         <Row gutter={[20, 0]}>
           <Col span={24}>
             <Form.Item label="Company Name" name="company_name">
-              <Input placeholder="Enter company name" />
+              <Input placeholder="Enter company name" readOnly />
             </Form.Item>
           </Col>
           <Col span={24}>
@@ -143,6 +162,49 @@ const DuplicateCampaignPopup = ({
             </Form.Item>
           </Col>
         </Row>
+
+        <Row gutter={[30, 0]}>
+          <Col span={12}>
+            <Form.Item
+              label="Select Bussines Development"
+              name="bd"
+              rules={[{ required: true, message: 'Please select BD' }]}
+            >
+              <Select
+                showSearch
+                placeholder="Select a person"
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? '')
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                options={teamBD}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="Select Analyst"
+              name="analyst"
+              rules={[{ required: true, message: 'Please select Analyst' }]}
+            >
+              <Select
+                showSearch
+                placeholder="Select a person"
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? '')
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                options={teamAnalyst}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Divider />
 
         <Row gutter={[20, 0]}>
           <Col>
