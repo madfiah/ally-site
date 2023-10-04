@@ -22,11 +22,6 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    form.setFieldsValue(contract)
-    calculatePayout('0')
-  }, [])
-
   const onFinish = (values: any) => {
     console.log('Success:', values)
     setLoading(true)
@@ -52,7 +47,7 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
     console.log('Failed:', errorInfo)
   }
 
-  const calculatePayout = (value: string) => {
+  const calculatePayout = (value: any) => {
     if (contract) {
       const fee_kb = value ? parseFloat(parseFloat(value).toFixed(2)) : 0
       const exchange_rate = form.getFieldValue('exchange_rate')
@@ -75,15 +70,17 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
     return false
   }
 
+  useEffect(() => {
+    let fee_kb = contract?.total_funding * (contract?.sub_agent_fee / 100)
+    calculatePayout(fee_kb)
+  }, [])
+
   return (
     <Form
       form={form}
       name="basic"
-      initialValues={{
-        contract_no: '01/0223',
-      }}
+      initialValues={contract}
       onFinish={onFinish}
-      onFinishFailed={onFinishFailed}
       autoComplete="off"
       layout="vertical"
     >
@@ -101,14 +98,10 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
           <Form.Item label="Current Funding Amount" name="campaign_funding">
             <InputNumber
               style={{ width: '100%' }}
-              formatter={(value: any) => {
-                let amount = new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'SGD',
-                })
-
-                return amount.format(value)
-              }}
+              formatter={(value) =>
+                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              disabled
             />
           </Form.Item>
         </Col>
@@ -117,9 +110,8 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
             <InputNumber
               style={{ width: '100%' }}
               formatter={(value) =>
-                `SGD ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
               }
-              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
               onChange={(v: any) => calculatePayout(v)}
             />
           </Form.Item>
@@ -128,14 +120,10 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
           <Form.Item label="Wakalah Fee (Investor)" name="investor_fee">
             <InputNumber
               style={{ width: '100%' }}
-              formatter={(value: any) => {
-                let amount = new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'SGD',
-                })
-
-                return amount.format(value)
-              }}
+              formatter={(value) =>
+                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              disabled
             />
           </Form.Item>
         </Col>
@@ -143,30 +131,21 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
           <Form.Item label="Total Payout" name="total_payout">
             <InputNumber
               style={{ width: '100%' }}
-              formatter={(value: any) => {
-                let amount = new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'SGD',
-                })
-
-                return amount.format(value)
-              }}
+              formatter={(value) =>
+                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              disabled
             />
           </Form.Item>
         </Col>
         <Col span={8}>
           <Form.Item label="Total Payout (IDR)" name="total_payout_idr">
-            {/* <Input readOnly /> */}
             <InputNumber
               style={{ width: '100%' }}
-              formatter={(value: any) => {
-                let amount = new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'IDR',
-                })
-
-                return amount.format(value)
-              }}
+              formatter={(value) =>
+                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              disabled
             />
           </Form.Item>
         </Col>
@@ -241,24 +220,22 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Exchange Rate" name="exchange_rate">
+          <Form.Item label="Exchange Rate (IDR)" name="exchange_rate">
             <InputNumber
               style={{ width: '100%' }}
               formatter={(value) =>
-                `IDR ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
               }
-              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
             />
           </Form.Item>
         </Col>
         <Col span={12}>
-          <Form.Item label="Variable Funding" name="asset_cost_local">
+          <Form.Item label="Variable Funding (IDR)" name="asset_cost_local">
             <InputNumber
               style={{ width: '100%' }}
               formatter={(value) =>
-                `IDR ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
               }
-              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
             />
           </Form.Item>
         </Col>

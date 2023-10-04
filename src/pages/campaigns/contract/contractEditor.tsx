@@ -46,6 +46,8 @@ interface IProps {
   slug: any
 }
 
+const { Search } = Input
+
 const BE_URL = process.env.NEXT_PUBLIC_BE_URL
 
 const ContractEditor = ({ user, slug }: IProps) => {
@@ -54,6 +56,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
   const [savePreviewLoading, setSavePreviewLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [templates, setTemplates] = useState([])
+  const [filteredTemplates, setFilteredTemplates] = useState([])
 
   const [fileContract, setFileContract] = useState<any>(null)
   const [mainContent, setMainContent] = useState('')
@@ -71,6 +74,11 @@ const ContractEditor = ({ user, slug }: IProps) => {
   const [openModalFileContract, setOpenModalFileContract] = useState(false)
 
   const [isModalOpenInvestor, setIsModalOpenInvestor] = useState<any>(null)
+  const [isModalPassword, setIsModalPassword] = useState(false)
+  const [adminPassword, setAdminPassword] = useState('')
+  const [btnPasswordLoading, setBtnPasswordLoading] = useState(false)
+  const [isPasswordFalse, setIsPasswordFalse] = useState(false)
+  const [isPreviewAfterSave, setIsPreviewAfterSave] = useState(false)
 
   const initContracts = () => {
     Api.get(`campaign/file-contract/${slug}`, user?.token).then((res: any) => {
@@ -82,6 +90,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
     Api.get(`campaign/contract/templates`, user?.token)
       .then((res: any) => {
         setTemplates(res.data)
+        setFilteredTemplates(res.data)
       })
       .catch((err) => {
         console.log(err)
@@ -136,7 +145,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
     setIsModalOpen(false)
   }
 
-  const onSave = (preview = false) => {
+  const onSave = () => {
     setSaveLoading(true)
 
     Api.post(`campaign/file-contract/${slug}`, user?.token, user?.id, {
@@ -157,7 +166,7 @@ const ContractEditor = ({ user, slug }: IProps) => {
         setAttachmentContent(contract_content.appendix)
         setFileContract(file_contract)
 
-        if (preview) {
+        if (isPreviewAfterSave) {
           if (fileContract.type.toLowerCase().includes('investor')) {
             setIsModalOpenInvestor(true)
           } else {
@@ -292,7 +301,12 @@ const ContractEditor = ({ user, slug }: IProps) => {
       {
         key: '1',
         label: (
-          <span onClick={() => onSave(true)}>
+          <span
+            onClick={() => {
+              setIsModalPassword(true)
+              setIsPreviewAfterSave(true)
+            }}
+          >
             <Space size={10}>
               <FileDoneOutlined />
               <>{`Save & Preview`}</>
@@ -341,6 +355,38 @@ const ContractEditor = ({ user, slug }: IProps) => {
     )
   }
 
+  const onSearch = (value: string) => {
+    // console.log(value)
+    const result = templates.filter((template: any) => {
+      return (template?.name ?? '').includes(value)
+    })
+    setFilteredTemplates(result)
+
+    console.log(result)
+  }
+
+  const checkPassword = () => {
+    setBtnPasswordLoading(true)
+
+    Api.post(`auth/check`, user?.token, user?.id, {
+      email: user.email,
+      password: adminPassword,
+    })
+      .then((res: any) => {
+        onSave()
+        setIsModalPassword(false)
+      })
+      .catch((err) => {
+        message.error({ content: err.data.message })
+
+        setIsPasswordFalse(true)
+      })
+      .finally(() => {
+        setAdminPassword('')
+        setBtnPasswordLoading(false)
+      })
+  }
+
   return (
     <>
       {!loading && (
@@ -372,7 +418,11 @@ const ContractEditor = ({ user, slug }: IProps) => {
                   type="primary"
                   loading={saveLoading}
                   disabled={savePreviewLoading || contractType === null}
-                  onClick={() => onSave(false)}
+                  // onClick={() => onSave(false)}
+                  onClick={() => {
+                    setIsModalPassword(true)
+                    setIsPreviewAfterSave(false)
+                  }}
                   icon={<CheckOutlined />}
                 >{`Save Contract`}</Button>
 
@@ -449,8 +499,19 @@ const ContractEditor = ({ user, slug }: IProps) => {
         centered
         width={640}
       >
+        <Space
+          align="end"
+          style={{ width: '100%', justifyContent: 'end', marginBottom: '15px' }}
+        >
+          <Search
+            allowClear
+            placeholder="Search contract name"
+            onSearch={onSearch}
+            style={{ width: 250 }}
+          />
+        </Space>
         <List
-          dataSource={templates}
+          dataSource={filteredTemplates}
           pagination={{
             pageSize: 8,
           }}
@@ -462,10 +523,9 @@ const ContractEditor = ({ user, slug }: IProps) => {
                 onClick={() => selectTemplate(item)}
               >
                 <Space className="space-between">
-                  {item.id}
                   {item.name}
                   <Typography.Text>
-                    <small>{item.created_at}</small>
+                    <small>{item.updated_at}</small>
                   </Typography.Text>
                 </Space>
               </Button>
@@ -504,6 +564,37 @@ const ContractEditor = ({ user, slug }: IProps) => {
 
           <Button type="primary" onClick={onNextPreview}>
             Next to Preview
+          </Button>
+        </Space>
+      </Modal>
+
+      <Modal
+        title="Password Confirmation"
+        open={isModalPassword}
+        onCancel={() => setIsModalPassword(false)}
+        footer={false}
+        width={350}
+        centered
+      >
+        <p>Please enter your account password for confirmation.</p>
+        <Space direction="vertical" size={20} style={{ width: '100%' }}>
+          <Input.Password
+            autoComplete="false"
+            status={`${isPasswordFalse ? 'error' : ''}`}
+            placeholder="Enter your password"
+            style={{ width: '100%' }}
+            onChange={(e) => {
+              setAdminPassword(e.target.value)
+              setIsPasswordFalse(false)
+            }}
+          />
+          <Button
+            icon={<CheckOutlined />}
+            onClick={checkPassword}
+            loading={btnPasswordLoading}
+            disabled={adminPassword === ''}
+          >
+            Submit
           </Button>
         </Space>
       </Modal>

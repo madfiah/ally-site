@@ -10,6 +10,7 @@ import { getSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { Nunito } from '@next/font/google'
 import { LoadingOutlined } from '@ant-design/icons'
+import UkmContract from './UkmContract'
 
 const nunito = Nunito({ subsets: ['latin'] })
 
@@ -90,14 +91,14 @@ const CampaignContract = ({ user }: IProps) => {
               ),
             },
             {
-              label: `Investor`,
-              key: 'investor',
-              children: <InvestmentReport user={user} slug={slug} />,
+              label: `UKM Contract`,
+              key: 'ukm_contract',
+              children: <UkmContract user={user} slug={slug} />,
             },
             {
-              label: `BD/Analyst`,
-              key: 'bd_analyst',
-              children: <TeamInspector user={user} slug={slug} />,
+              label: `Investor Contract`,
+              key: 'investor_contract',
+              children: <InvestmentReport user={user} slug={slug} />,
             },
           ]}
         />

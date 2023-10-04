@@ -40,21 +40,6 @@ const NewCampaign = ({ user }: IProps) => {
     console.log('Failed:', errorInfo)
   }
 
-  const onGenderChange = (value: string) => {
-    switch (value) {
-      case 'male':
-        form.setFieldsValue({ note: 'Hi, man!' })
-        break
-      case 'female':
-        form.setFieldsValue({ note: 'Hi, lady!' })
-        break
-      case 'other':
-        form.setFieldsValue({ note: 'Hi there!' })
-        break
-      default:
-    }
-  }
-
   const handleEditorChange = (content: any, editor: any) => {
     console.log('Content was updated:', content)
   }
