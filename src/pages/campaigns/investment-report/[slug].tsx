@@ -20,6 +20,9 @@ import { getSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
+import * as FileSaver from 'file-saver'
+import * as XLSX from 'xlsx'
+
 const dataSource = [
   {
     key: '1',
@@ -47,6 +50,7 @@ const InvestmentReport = ({ user }: IProps) => {
   const router = useRouter()
   const [modal, contextHolder] = Modal.useModal()
   const [loading, setLoading] = useState(false)
+  const [loadingExport, setLoadingExport] = useState(false)
   const [campaignName, setCampaignName] = useState('')
   const [report, setReport] = useState([])
 
@@ -91,6 +95,36 @@ const InvestmentReport = ({ user }: IProps) => {
           })
       },
     })
+  }
+
+  const exportToExcel = () => {
+    setLoadingExport(true)
+    const fileType =
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+    const fileExtension = '.xlsx'
+    Api.get(`campaign/investment-report/${slug}/export`, user?.token)
+      .then((res: any) => {
+        const ws = XLSX.utils.json_to_sheet(res.data)
+        const wb = { Sheets: { data: ws }, SheetNames: ['data'] }
+
+        const excelBuffer = XLSX.write(wb, {
+          bookType: 'xlsx',
+          type: 'array',
+        })
+
+        const blob = new Blob([excelBuffer], {
+          type: fileType,
+        })
+
+        return FileSaver.saveAs(
+          blob,
+          `investment-report-${slug}` + fileExtension
+        )
+      })
+      .catch((err) => {
+        message.error({ content: 'Failed to export data' })
+      })
+      .finally(() => setLoadingExport(false))
   }
 
   const columns = [
@@ -155,7 +189,12 @@ const InvestmentReport = ({ user }: IProps) => {
     <Card
       title={campaignName}
       extra={
-        <Button size="small" icon={<DownloadOutlined />}>
+        <Button
+          size="small"
+          icon={<DownloadOutlined />}
+          loading={loadingExport}
+          onClick={exportToExcel}
+        >
           Export to Excel
         </Button>
       }

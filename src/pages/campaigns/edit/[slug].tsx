@@ -37,6 +37,7 @@ import type { UploadProps } from 'antd'
 import weekday from 'dayjs/plugin/weekday'
 import timezone from 'dayjs/plugin/timezone'
 import localeData from 'dayjs/plugin/localeData'
+import TeamInspector from '../components/teamInspector'
 
 dayjs.extend(weekday)
 dayjs.extend(localeData)
@@ -86,7 +87,7 @@ const NewCampaign = ({ user }: IProps) => {
             : null,
           logo: res.data.logo === null ? '' : res.data.logo,
         }
-        
+
         form.setFieldsValue(params)
         setDescription(params.description)
         setCampaign(params)
@@ -792,6 +793,12 @@ const NewCampaign = ({ user }: IProps) => {
                 label: `PDFs`,
                 key: 'campaign-pdf',
                 children: <PdfCampaign user={user} campaign={campaign} />,
+                disabled: campaign === null,
+              },
+              {
+                label: `BD/Analyst`,
+                key: 'team-inspector',
+                children: <TeamInspector user={user} slug={slug} />,
                 disabled: campaign === null,
               },
             ]}
