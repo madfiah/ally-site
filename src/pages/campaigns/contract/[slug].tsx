@@ -76,7 +76,11 @@ const CampaignContract = ({ user }: IProps) => {
               label: `Contract Form`,
               key: 'form',
               children: (
-                <CampaignContractForm contract={campaignContract} user={user} />
+                <CampaignContractForm
+                  campaign={campaign}
+                  contract={campaignContract}
+                  user={user}
+                />
               ),
             },
             {
