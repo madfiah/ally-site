@@ -14,11 +14,12 @@ import {
 import { useEffect, useState } from 'react'
 
 interface Iprops {
+  campaign: any
   contract: any
   user: any
 }
 
-const CampaignContractForm = ({ contract, user }: Iprops) => {
+const CampaignContractForm = ({ campaign, contract, user }: Iprops) => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
 
@@ -274,99 +275,115 @@ const CampaignContractForm = ({ contract, user }: Iprops) => {
         </Col>
       </Row>
 
-      <Divider orientation="left" dashed>
-        Asset Financing
-      </Divider>
+      {/* Form for SME - Asset Purcashing */}
+      {campaign.subtype === 'ASSET PURCHASE FINANCING' && (
+        <>
+          <Divider orientation="left" dashed>
+            Asset Financing
+          </Divider>
 
-      <Row gutter={[30, 0]}>
-        <Col span={12}>
-          <Form.Item label="Asset to be purchased" name="purchase_asset_en">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item label="Asset to be purchased ID" name="purchase_asset_ba">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            label="Campaign Country Currency"
-            name="campaign_local_currency"
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            label="Purchase cost contribution date / Disburstment date"
-            name="purchase_date"
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-      </Row>
+          <Row gutter={[30, 0]}>
+            <Col span={12}>
+              <Form.Item label="Asset to be purchased" name="purchase_asset_en">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Asset to be purchased ID"
+                name="purchase_asset_ba"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Campaign Country Currency"
+                name="campaign_local_currency"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Purchase cost contribution date / Disburstment date"
+                name="purchase_date"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+        </>
+      )}
 
-      <Divider orientation="left" dashed>
-        Invoice Financing
-      </Divider>
+      {/* Form for SME - Asset Purcashing */}
+      {campaign.subtype === 'INVOICE FINANCING' && (
+        <>
+          <Divider orientation="left" dashed>
+            Invoice Financing
+          </Divider>
 
-      <Row gutter={[30, 0]}>
-        <Col span={8}>
-          <Form.Item label="Maturity Date" name="maturity_date">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={8}>
-          <Form.Item label="Repayment Date" name="repayment_date">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={8}>
-          <Form.Item label="Sub-Agency Fees (%)" name="sub_agent_fee">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            label="Receivable Amount as per invoice"
-            name="receivable_amount_invoice"
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            label="Receivable Amount as per invoice (SGD)"
-            name="receivable_amount_sgd"
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item label="Akta Number" name="akta_no_en">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item label="Akta Number (ID)" name="akta_no_ba">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item label="Underlying Document" name="underlying_document_en">
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            label="Underlying Document (ID)"
-            name="underlying_document_ba"
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-      </Row>
+          <Row gutter={[30, 0]}>
+            <Col span={8}>
+              <Form.Item label="Maturity Date" name="maturity_date">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Repayment Date" name="repayment_date">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Sub-Agency Fees (%)" name="sub_agent_fee">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Receivable Amount as per invoice"
+                name="receivable_amount_invoice"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Receivable Amount as per invoice (SGD)"
+                name="receivable_amount_sgd"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Akta Number" name="akta_no_en">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Akta Number (ID)" name="akta_no_ba">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Underlying Document"
+                name="underlying_document_en"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Underlying Document (ID)"
+                name="underlying_document_ba"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+        </>
+      )}
 
       <Divider orientation="left" dashed />
 
