@@ -276,7 +276,7 @@ const CampaignContractForm = ({ campaign, contract, user }: Iprops) => {
       </Row>
 
       {/* Form for SME - Asset Purcashing */}
-      {campaign.subtype === 'ASSET PURCHASE FINANCING' && (
+      {campaign?.subtype === 'ASSET PURCHASE FINANCING' && (
         <>
           <Divider orientation="left" dashed>
             Asset Financing
@@ -317,7 +317,7 @@ const CampaignContractForm = ({ campaign, contract, user }: Iprops) => {
       )}
 
       {/* Form for SME - Asset Purcashing */}
-      {campaign.subtype === 'INVOICE FINANCING' && (
+      {campaign?.subtype === 'INVOICE FINANCING' && (
         <>
           <Divider orientation="left" dashed>
             Invoice Financing
