@@ -1,15 +1,38 @@
-import { Button, Card, Col, Form, Input, Row } from 'antd'
-import { signOut } from 'next-auth/react'
+import { Api } from '@/api/api'
+import { Button, Card, Col, Form, Input, message, Row } from 'antd'
+import { getSession, signOut } from 'next-auth/react'
+import { useState } from 'react'
 
-const ResetPassword = () => {
+interface IProps {
+  user: any
+}
+
+const ResetPassword = ({ user }: IProps) => {
   const [form] = Form.useForm()
+  const [loading, setLoading] = useState(false)
 
   const onFinish = (values: any) => {
-    console.log('Success:', values)
+    console.log('Success:', user)
+    setLoading(true)
 
-    signOut({
-      callbackUrl: '/login',
-    })
+    Api.post(`auth/reset-password/${user?.token}`, user?.token, null, values)
+      .then((res: any) => {
+        message.success({
+          content: 'Success to reset password, please to relogin',
+        })
+
+        setTimeout(() => {
+          signOut({
+            callbackUrl: '/login',
+          })
+        }, 1000)
+      })
+      .catch((err) => {
+        message.error({
+          content: 'Failed to reset password, please check you input',
+        })
+      })
+      .finally(() => setLoading(false))
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -41,7 +64,7 @@ const ResetPassword = () => {
           >
             <Form.Item
               label="Old Password"
-              name="old_password"
+              name="password"
               rules={[
                 {
                   required: true,
@@ -67,7 +90,7 @@ const ResetPassword = () => {
 
             <Form.Item
               label="Re-enter New Password"
-              name="new_password_verification"
+              name="confirm_password"
               rules={[
                 {
                   required: true,
@@ -91,7 +114,7 @@ const ResetPassword = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={loading}>
                 {`Change password & re-login`}
               </Button>
             </Form.Item>
@@ -103,3 +126,14 @@ const ResetPassword = () => {
 }
 
 export default ResetPassword
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
