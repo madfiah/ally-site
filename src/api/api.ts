@@ -1,4 +1,6 @@
+import { message } from 'antd'
 import axios from 'axios'
+import { signOut } from 'next-auth/react'
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const Api = {
@@ -20,6 +22,16 @@ export const Api = {
           return resolve(result.data)
         })
         .catch((error: any) => {
+          if (error.response.status === 401) {
+            message.error({ content: 'user unauthorized to access.' })
+
+            setTimeout(() => {
+              signOut({
+                callbackUrl: '/login',
+              })
+            }, 1000)
+          }
+
           reject(error.response)
         })
     })
@@ -42,6 +54,16 @@ export const Api = {
           return resolve(result.data)
         })
         .catch((error: any) => {
+          if (error.response.status === 401) {
+            message.error({ content: 'user unauthorized to access.' })
+
+            setTimeout(() => {
+              signOut({
+                callbackUrl: '/login',
+              })
+            }, 1000)
+          }
+
           reject(error.response)
         })
     })

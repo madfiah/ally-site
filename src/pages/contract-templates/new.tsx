@@ -91,6 +91,11 @@ const ContractEditor = () => {
         style={{ marginBottom: 32 }}
         items={[
           {
+            label: `Detail Contract`,
+            key: 'detail-content',
+            children: <>This is detail contract</>,
+          },
+          {
             label: `Main Content`,
             key: 'main-content',
             children: <ContractEditorForm content="<p>Main contract</p>" />,
