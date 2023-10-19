@@ -14,7 +14,7 @@ import {
   Checkbox,
   message,
 } from 'antd'
-import { redirect } from 'next/navigation'
+
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
@@ -30,7 +30,9 @@ type FieldType = {
 const Forget = ({ without_layout }: Props) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [btnLoading, setBtnLoading] = useState(false)
   const [diclined, setDiclined] = useState(false)
+  const [form] = Form.useForm()
 
   const token = router.query.token
 
@@ -38,8 +40,9 @@ const Forget = ({ without_layout }: Props) => {
     setLoading(true)
 
     Api.post(`auth/validation-reset-password/${token}`, null)
-      .then((res) => {
+      .then((res: any) => {
         console.log(res)
+        message.success({ content: res.message })
       })
       .catch((err) => {
         setDiclined(true)
@@ -59,10 +62,38 @@ const Forget = ({ without_layout }: Props) => {
 
   useEffect(() => {
     checkToken()
+
+    form.setFieldValue('password', '')
+    form.setFieldValue('password_confirmation', '')
   }, [])
 
   const onFinish = (values: any) => {
     console.log('Success:', values)
+    setBtnLoading(true)
+
+    Api.post(`auth/enter-new-password/${token}`, null, null, values)
+      .then((res) => {
+        console.log(res)
+        message.success({ content: 'Success to change your password.' })
+
+        setTimeout(() => {
+          router.push('/login')
+        }, 2000)
+      })
+      .catch((err) => {
+        setDiclined(true)
+        message.error({
+          content:
+            'Ops, Your request cannot be continued, please request again',
+        })
+
+        setTimeout(() => {
+          router.push('/login')
+        }, 3500)
+      })
+      .finally(() => {
+        setBtnLoading(false)
+      })
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -153,7 +184,11 @@ const Forget = ({ without_layout }: Props) => {
                     </Form.Item>
 
                     <Form.Item>
-                      <Button type="primary" htmlType="submit">
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={btnLoading}
+                      >
                         Submit
                       </Button>
                     </Form.Item>

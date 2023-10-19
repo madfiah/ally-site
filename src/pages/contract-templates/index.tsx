@@ -1,10 +1,42 @@
+import { Api } from '@/api/api'
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Card, Input, Space, Table, Tooltip } from 'antd'
+import { getSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 const { Search } = Input
 
-const ContractTemplates = () => {
+interface IProps {
+  user: any
+}
+
+const ContractTemplates = ({ user }: IProps) => {
+  const [loading, setLoading] = useState(false)
+  const [contractTemplates, setContractTemplates] = useState<any>(null)
+
+  const initData = () => {
+    setLoading(true)
+
+    Api.get(`contract-templates`, user?.token)
+      .then((res: any) => {
+        // console.log(res)
+        setContractTemplates(res.data)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setLoading(false)
+        }, 1500)
+      })
+  }
+
+  useEffect(() => {
+    initData()
+  }, [])
+
   const dataSource = [
     {
       key: '1',
@@ -106,9 +138,26 @@ const ContractTemplates = () => {
         </Space>
       </Space>
 
-      <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
+      <Table
+        dataSource={contractTemplates}
+        columns={columns}
+        className={'mt-1'}
+        loading={loading}
+        rowKey={'id'}
+      />
     </Card>
   )
 }
 
 export default ContractTemplates
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}

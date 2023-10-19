@@ -1,6 +1,6 @@
 import { Api } from '@/api/api'
 import { Col, Row, Button, Modal, Form, Input, Space, message } from 'antd'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Props {
   handleClose: any
@@ -8,6 +8,7 @@ interface Props {
 
 const ForgotPassword = ({ handleClose }: Props) => {
   const [forgotLoading, setForgotLoading] = useState(false)
+  const [form] = Form.useForm()
 
   const onFinish = (values: any) => {
     setForgotLoading(true)
@@ -26,7 +27,10 @@ const ForgotPassword = ({ handleClose }: Props) => {
 
         message.error({ content: err.data.message })
       })
-      .finally(() => setForgotLoading(true))
+      .finally(() => {
+        setForgotLoading(false)
+        form.setFieldValue('email', '')
+      })
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -40,9 +44,9 @@ const ForgotPassword = ({ handleClose }: Props) => {
         password.
       </p>
       <Form
+        form={form}
         name="basic"
         style={{ marginTop: 25 }}
-        initialValues={{ remember: true }}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         autoComplete="off"
