@@ -1,36 +1,41 @@
+import { Api } from '@/api/api'
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Card, Input, Space, Table, Tooltip } from 'antd'
+import { Nunito } from '@next/font/google'
+import { Button, Card, Input, message, Space, Table, Tooltip } from 'antd'
+import { getSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 const { Search } = Input
 
-const ContractTemplates = () => {
-  const dataSource = [
-    {
-      key: '1',
-      name: `Invoice Financing Template`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-    {
-      key: '2',
-      name: `Kapital Boost Asset Financing`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-    {
-      key: '3',
-      name: `Asset Purchase Financing (SGD)`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-    {
-      key: '4',
-      name: `Murabaha Financing SGD`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-  ]
+const nunito = Nunito({ subsets: ['latin'] })
+
+interface IProps {
+  user: any
+}
+
+const ContractTemplates = ({ user }: IProps) => {
+  const [loading, setLoading] = useState(false)
+  const [contracts, setContracts] = useState<any>([])
+  const [filteredContracts, setFilteredContracts] = useState<any>([])
+
+  const initContract = () => {
+    setLoading(true)
+
+    Api.get(`contract-templates`, user?.token)
+      .then((res: any) => {
+        setContracts(res.data)
+        setFilteredContracts(res.data)
+      })
+      .catch((err) => {
+        message.error({ content: 'failed to load data' })
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    initContract()
+  }, [])
 
   const columns = [
     {
@@ -82,7 +87,10 @@ const ContractTemplates = () => {
   ]
 
   const onSearch = (value: string) => {
-    console.log(value)
+    const result = contracts.filter((contract: any) => {
+      return (contract?.name ?? '').includes(value)
+    })
+    setFilteredContracts(result)
   }
 
   return (
@@ -92,6 +100,7 @@ const ContractTemplates = () => {
 
         <Space wrap>
           <Search
+            allowClear
             placeholder="Search contract"
             onSearch={onSearch}
             style={{ width: 200 }}
@@ -106,9 +115,25 @@ const ContractTemplates = () => {
         </Space>
       </Space>
 
-      <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
+      <Table
+        dataSource={filteredContracts}
+        columns={columns}
+        className={'mt-1'}
+        loading={loading}
+      />
     </Card>
   )
 }
 
 export default ContractTemplates
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
