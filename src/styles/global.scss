@@ -9,7 +9,9 @@ body {
   line-height: 32px;
   white-space: nowrap;
 }
-
+.d-block {
+  display: block;
+}
 .m-0 {
   margin: 0;
 }
@@ -23,6 +25,12 @@ body {
 }
 .mb-1 {
   margin-bottom: 1rem;
+}
+.mb-2 {
+  margin-bottom: 2rem;
+}
+.mb-3 {
+  margin-bottom: 2.5rem;
 }
 .mt-1 {
   margin-top: 0rem !important;
