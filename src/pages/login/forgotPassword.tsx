@@ -1,12 +1,36 @@
-import { Col, Row, Button, Modal, Form, Input, Space } from 'antd'
+import { Api } from '@/api/api'
+import { Col, Row, Button, Modal, Form, Input, Space, message } from 'antd'
+import { useEffect, useState } from 'react'
 
 interface Props {
   handleClose: any
 }
 
 const ForgotPassword = ({ handleClose }: Props) => {
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [form] = Form.useForm()
+
   const onFinish = (values: any) => {
+    setForgotLoading(true)
     console.log('Success:', values)
+    Api.post(`auth/forgot-password`, null, null, values)
+      .then((res: any) => {
+        console.log(res)
+        message.success({
+          content:
+            'verification email sent successfully. Please check your email inbox',
+        })
+        handleClose()
+      })
+      .catch((err) => {
+        console.log(err)
+
+        message.error({ content: err.data.message })
+      })
+      .finally(() => {
+        setForgotLoading(false)
+        form.setFieldValue('email', '')
+      })
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -20,9 +44,9 @@ const ForgotPassword = ({ handleClose }: Props) => {
         password.
       </p>
       <Form
+        form={form}
         name="basic"
         style={{ marginTop: 25 }}
-        initialValues={{ remember: true }}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         autoComplete="off"
@@ -37,7 +61,7 @@ const ForgotPassword = ({ handleClose }: Props) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={forgotLoading}>
             Send Request
           </Button>
         </Form.Item>

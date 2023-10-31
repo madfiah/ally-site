@@ -1,10 +1,12 @@
 import { Api } from '@/api/api'
 import {
   CloseCircleOutlined,
+  ExclamationCircleOutlined,
   FieldTimeOutlined,
   FileSearchOutlined,
   FileSyncOutlined,
   LoadingOutlined,
+  MailOutlined,
   SendOutlined,
 } from '@ant-design/icons'
 import {
@@ -13,6 +15,7 @@ import {
   Divider,
   message,
   Modal,
+  notification,
   Row,
   Space,
   Table,
@@ -34,6 +37,7 @@ interface iProps {
 const BE_URL = process.env.NEXT_PUBLIC_BE_URL
 
 const UkmContract = ({ user, slug }: iProps) => {
+  const [modal, contextHolder] = Modal.useModal()
   const [loading, setLoading] = useState(false)
   const [contracts, setContracts] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -117,6 +121,45 @@ const UkmContract = ({ user, slug }: iProps) => {
       .finally(() => setOpenLogLoading(false))
   }
 
+  // const sendReminder = (document_hash: string) => {
+  //   setLoading(true)
+
+  //   Api.get(`eversign/document/${document_hash}/reminder`, user?.token)
+  //     .then((res: any) => {
+  //       notification.success({ message: 'Reminder sent' })
+  //     })
+  //     .catch((err) => {
+  //       notification.error({
+  //         message: 'Failed to send reminder, please try again',
+  //       })
+  //     })
+  //     .finally(() => setLoading(false))
+  // }
+
+  const confirmToSendReminder = (document_hash: string) => {
+    modal.confirm({
+      title: 'Send reminder to UKM',
+      icon: <ExclamationCircleOutlined />,
+      content: `Are you sure you want to send a reminder email?`,
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        setLoading(true)
+
+        Api.get(`eversign/document/${document_hash}/reminder`, user?.token)
+          .then((res: any) => {
+            notification.success({ message: 'Reminder sent' })
+          })
+          .catch((err) => {
+            notification.error({
+              message: 'Failed to send reminder, please try again',
+            })
+          })
+          .finally(() => setLoading(false))
+      },
+    })
+  }
+
   const columns = [
     {
       title: 'Name',
@@ -193,6 +236,14 @@ const UkmContract = ({ user, slug }: iProps) => {
                 icon={<FieldTimeOutlined />}
                 disabled={!data.sent}
                 onClick={() => openLogs(data)}
+              ></Button>
+            </Tooltip>
+            <Tooltip title="Send reminder">
+              <Button
+                size="small"
+                icon={<MailOutlined />}
+                disabled={!data.sent || data.document_hash === null}
+                onClick={() => confirmToSendReminder(data.document_hash)}
               ></Button>
             </Tooltip>
           </Space>
@@ -284,6 +335,8 @@ const UkmContract = ({ user, slug }: iProps) => {
           </>
         )}
       </Modal>
+
+      {contextHolder}
     </>
   )
 }
