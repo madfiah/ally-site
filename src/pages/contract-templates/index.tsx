@@ -1,68 +1,87 @@
 import { Api } from '@/api/api'
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Card, Input, Space, Table, Tooltip } from 'antd'
+import {
+  DeleteOutlined,
+  EditOutlined,
+  ExclamationCircleOutlined,
+  PlusOutlined,
+} from '@ant-design/icons'
+import { Nunito } from '@next/font/google'
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  message,
+  Modal,
+  notification,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+} from 'antd'
 import { getSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
 const { Search } = Input
+
+const nunito = Nunito({ subsets: ['latin'] })
+
+const Option = Select.Option
 
 interface IProps {
   user: any
 }
 
 const ContractTemplates = ({ user }: IProps) => {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [contractTemplates, setContractTemplates] = useState<any>(null)
+  const [submitLoading, setSubmitLoading] = useState(false)
+  const [modal, contextHolder] = Modal.useModal()
+  const [contracts, setContracts] = useState<any>([])
+  const [filteredContracts, setFilteredContracts] = useState<any>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [form] = Form.useForm()
 
-  const initData = () => {
+  const initContract = () => {
     setLoading(true)
 
     Api.get(`contract-templates`, user?.token)
       .then((res: any) => {
-        // console.log(res)
-        setContractTemplates(res.data)
+        setContracts(res.data)
+        setFilteredContracts(res.data)
       })
-      .catch((error) => {
-        console.log(error)
+      .catch((err) => {
+        message.error({ content: 'failed to load data' })
       })
-      .finally(() => {
-        setTimeout(() => {
-          setLoading(false)
-        }, 1500)
-      })
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => {
-    initData()
+    initContract()
   }, [])
 
-  const dataSource = [
-    {
-      key: '1',
-      name: `Invoice Financing Template`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-    {
-      key: '2',
-      name: `Kapital Boost Asset Financing`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-    {
-      key: '3',
-      name: `Asset Purchase Financing (SGD)`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-    {
-      key: '4',
-      name: `Murabaha Financing SGD`,
-      updated_at: '2021-10-30 01:53:16',
-      created_at: '2021-10-30 01:53:16',
-    },
-  ]
+  const confirm = (data: any) => {
+    modal.confirm({
+      title: 'Delete Action',
+      icon: <ExclamationCircleOutlined />,
+      content: `Are you sure want to delete contract ${data.name} `,
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        Api.post(`contract-templates/remove/${data.id}`, user?.token, user?.id)
+          .then((res: any) => {
+            message.success(`Contract ${data.name} was deleted`)
+            initContract()
+          })
+          .catch((err) => {
+            message.error('Failed to delete data, please try again')
+          })
+      },
+    })
+  }
 
   const columns = [
     {
@@ -80,15 +99,33 @@ const ContractTemplates = ({ user }: IProps) => {
       key: 'name',
     },
     {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+    },
+    {
+      title: 'Contract For',
+      dataIndex: 'user_for',
+      key: 'user_for',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'is_show',
+      key: 'is_show',
+      render: (is_show: boolean) => (
+        <>
+          {is_show ? (
+            <Tag color="green">Active</Tag>
+          ) : (
+            <Tag color="orange">Not Active</Tag>
+          )}
+        </>
+      ),
+    },
+    {
       title: 'Last update',
       dataIndex: 'updated_at',
       key: 'updated_at',
-      width: 175,
-    },
-    {
-      title: 'Created at',
-      dataIndex: 'created_at',
-      key: 'created_at',
       width: 175,
     },
     {
@@ -98,13 +135,15 @@ const ContractTemplates = ({ user }: IProps) => {
       width: '150px',
       render: (data: any) => (
         <Space size={`small`} className="space-end">
-          <Tooltip title="Edit master payout">
-            <Button size="small">
-              <EditOutlined />
-            </Button>
+          <Tooltip title="Edit contract template">
+            <Link href={`/contract-templates/${data?.id}`}>
+              <Button size="small">
+                <EditOutlined />
+              </Button>
+            </Link>
           </Tooltip>
-          <Tooltip title="Delete master payout">
-            <Button size="small" danger>
+          <Tooltip title="Delete contract template">
+            <Button size="small" danger onClick={() => confirm(data)}>
               <DeleteOutlined />
             </Button>
           </Tooltip>
@@ -114,7 +153,29 @@ const ContractTemplates = ({ user }: IProps) => {
   ]
 
   const onSearch = (value: string) => {
-    console.log(value)
+    const result = contracts.filter((contract: any) => {
+      return (contract?.name ?? '').includes(value)
+    })
+    setFilteredContracts(result)
+  }
+
+  const onFinish = (values: any) => {
+    setSubmitLoading(true)
+
+    Api.post(`contract-templates/store`, user.token, user.id, {
+      ...values,
+    })
+      .then((res: any) => {
+        notification.success({ message: 'Success to update campaign' })
+
+        setTimeout(() => {
+          router.push(`contract-templates/${res.data.id}`)
+        }, 500)
+      })
+      .catch((err: any) => {
+        notification.error({ message: 'error' })
+      })
+      .finally(() => setSubmitLoading(false))
   }
 
   return (
@@ -124,27 +185,92 @@ const ContractTemplates = ({ user }: IProps) => {
 
         <Space wrap>
           <Search
+            allowClear
             placeholder="Search contract"
             onSearch={onSearch}
             style={{ width: 200 }}
           />
           <Tooltip title="Create new template" placement={`topRight`}>
-            <Link href={'/contract-templates/new'}>
-              <Button type="dashed">
-                <PlusOutlined />
-              </Button>
-            </Link>
+            {/* <Link href={'/contract-templates/new'}> */}
+            <Button type="dashed" onClick={() => setIsModalOpen(true)}>
+              <PlusOutlined />
+            </Button>
+            {/* </Link> */}
           </Tooltip>
         </Space>
       </Space>
 
       <Table
-        dataSource={contractTemplates}
+        dataSource={filteredContracts}
         columns={columns}
         className={'mt-1'}
         loading={loading}
-        rowKey={'id'}
       />
+
+      <Modal
+        title="Create new contract template"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        centered
+        footer={false}
+      >
+        <Form
+          layout="vertical"
+          form={form}
+          name="control-hooks"
+          onFinish={onFinish}
+          style={{ maxWidth: 600 }}
+        >
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="type" label="Type" rules={[{ required: true }]}>
+            <Select
+              placeholder="Select a option and change input text above"
+              allowClear
+              showSearch
+            >
+              <Option value={'all'}>All</Option>
+              <Option value={'murabaha'}>Murabaha</Option>
+              <Option value={'invoice-financing'}>Invoice Financing</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="user_for"
+            label="Contract For"
+            rules={[{ required: true }]}
+          >
+            <Select placeholder="Select a user type" allowClear>
+              <Option value="Investor">Investor</Option>
+              <Option value="UKM">UKM</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues.gender !== currentValues.gender
+            }
+          >
+            {({ getFieldValue }) =>
+              getFieldValue('gender') === 'other' ? (
+                <Form.Item
+                  name="customizeGender"
+                  label="Customize Gender"
+                  rules={[{ required: true }]}
+                >
+                  <Input />
+                </Form.Item>
+              ) : null
+            }
+          </Form.Item>
+
+          <Button type="primary" loading={submitLoading} htmlType="submit">
+            Submit
+          </Button>
+        </Form>
+      </Modal>
+
+      {contextHolder}
     </Card>
   )
 }
