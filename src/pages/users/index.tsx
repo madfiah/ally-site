@@ -15,71 +15,60 @@ import {
   Dropdown,
   InputNumber,
   Modal,
+  notification,
   Space,
   Table,
   Tabs,
   Tooltip,
 } from 'antd'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { TabsProps } from 'antd'
 import UserInformation from './components/userInformation'
 import ResultVeriff from './components/resultVeriff'
+import { Api } from '@/api/api'
+import { getSession } from 'next-auth/react'
+import moment from 'moment'
+import ModalDetailUser from './components/detailUser'
 
-const Users = () => {
+interface IProps {
+  user: any
+}
+
+const Users = ({ user }: IProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [users, setUsers] = useState<any>(null)
+  const [userId, setUserId] = useState<any>(null)
 
-  const showModal = () => {
-    setIsModalOpen(true)
+  const initUser = () => {
+    setLoading(true)
+
+    Api.get(`users`, user?.token)
+      .then((res: any) => {
+        setUsers(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+
+        notification.error({ message: 'Failed to fetch data user' })
+      })
+      .finally(() => setLoading(false))
   }
 
-  const handleOk = () => {
-    setIsModalOpen(false)
+  useEffect(() => {
+    initUser()
+  }, [])
+
+  const showModal = (data: any) => {
+    setIsModalOpen(true)
+    setUserId(data.id)
   }
 
   const handleCancel = () => {
     setIsModalOpen(false)
+    setUserId(null)
   }
-
-  const onChangeTab = (key: string) => {
-    console.log(key)
-  }
-
-  const dataSource = [
-    {
-      key: '1',
-      firstname: 'Mike',
-      lastname: 'Ropo',
-      email: 'mike@mail.com',
-      country: 'VRINDAVAN',
-      phone_no: '09210129301',
-      status: 'New',
-      wallet_amount: 0,
-      created_at: '2023-03-10 11:46:38',
-    },
-    {
-      key: '2',
-      firstname: 'John',
-      lastname: 'Miller',
-      email: 'john.miller@mail.com',
-      country: 'SINGAPORE',
-      phone_no: '09210129301',
-      status: 'Approved',
-      wallet_amount: 13105.75,
-      created_at: '2023-02-17 11:46:38',
-    },
-    {
-      key: '3',
-      firstname: 'Mike',
-      lastname: 'Thompson',
-      email: 'mike@mail.com',
-      country: 'VRINDAVAN',
-      phone_no: '09210129301',
-      status: 'Rejected',
-      wallet_amount: 0,
-      created_at: '2023-02-15 11:46:38',
-    },
-  ]
 
   const columns = [
     {
@@ -91,14 +80,9 @@ const Users = () => {
       },
     },
     {
-      title: 'First Name',
-      dataIndex: 'firstname',
-      key: 'firstname',
-    },
-    {
-      title: 'Last Name',
-      dataIndex: 'lastname',
-      key: 'lastname',
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
     },
     {
       title: 'Email',
@@ -140,6 +124,8 @@ const Users = () => {
       title: 'Registered at',
       dataIndex: 'created_at',
       key: 'created_at',
+      render: (created_at: string) =>
+        moment(created_at).format('DD-MM-YYYY h:m:s'),
     },
     {
       title: '',
@@ -149,7 +135,7 @@ const Users = () => {
       render: (data: any) => (
         <Space size={`small`} className="space-end">
           <Tooltip title="Open details">
-            <Button size="small" onClick={showModal}>
+            <Button size="small" onClick={() => showModal(data)}>
               <BlockOutlined />
             </Button>
           </Tooltip>
@@ -190,67 +176,31 @@ const Users = () => {
     },
   ]
 
-  const items: TabsProps['items'] = [
-    {
-      key: '1',
-      label: `User Information`,
-      children: <UserInformation />,
-    },
-    {
-      key: '2',
-      label: `Verif Information`,
-      children: <ResultVeriff />,
-    },
-  ]
-
   return (
     <>
       <Card title="Data Users">
-        <Table dataSource={dataSource} columns={columns} />
+        <Table dataSource={users} columns={columns} loading={loading} />
       </Card>
 
-      <Modal
-        title="Detail User : Ahmad Ramli"
-        open={isModalOpen}
-        onCancel={handleCancel}
-        footer={null}
-        width={1000}
-        style={{ top: 20 }}
-      >
-        <div className="mt-2">
-          <Tabs
-            tabPosition="left"
-            defaultActiveKey="1"
-            items={items}
-            onChange={onChangeTab}
-          />
-
-          <Divider orientation="left" dashed />
-
-          <Space size={10} className="space-between">
-            <Space size={10}>
-              <Button danger icon={<CloseOutlined />}>
-                REJECT
-              </Button>
-              <Button type="primary" danger icon={<CloseOutlined />}>
-                BLACKLIST
-              </Button>
-            </Space>
-            <Tooltip title="Veriff has not been approved">
-              <Button
-                disabled
-                type="primary"
-                icon={<CheckOutlined />}
-                style={{ width: '200px' }}
-              >
-                APPROVE
-              </Button>
-            </Tooltip>
-          </Space>
-        </div>
-      </Modal>
+      <ModalDetailUser
+        isModalOpen={isModalOpen}
+        handleCancel={handleCancel}
+        userSession={user}
+        userId={userId}
+      />
     </>
   )
 }
 
 export default Users
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
