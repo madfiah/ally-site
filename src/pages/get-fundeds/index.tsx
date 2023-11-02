@@ -1,31 +1,40 @@
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Row, Space, Table, Tooltip } from 'antd'
+import { Api } from '@/api/api'
+import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
+import { Nunito } from '@next/font/google'
+import { Button, Card, Col, Input, Row, Space, Table, Tooltip } from 'antd'
+// import Search from 'antd/es/input/Search'
+import { getSession } from 'next-auth/react'
+import { useEffect, useState } from 'react'
 
-const Banks = () => {
-  const dataSource = [
-    {
-      key: '1',
-      name: 'Gael Ulrich ZAFIMINO',
-      email: 'gaelulrichzafimino@gmail.com',
-      phone_no: '0327370130',
-      company_name: 'Expert Gael',
-      company_reg_number: '192636718872',
-      industry: 'Tech',
-      annual_revenue: 'above $ 1 mn',
-      financing_solution: 'Asset Purchase Financing',
-    },
-    {
-      key: '2',
-      name: 'Bakar Haythar',
-      email: 'cloudbakarr@gmail.com',
-      phone_no: '5864312765',
-      company_name: 'Islamly llc',
-      company_reg_number: '-',
-      industry: '-',
-      annual_revenue: '$ 100k-299k',
-      financing_solution: 'Invoice Financing',
-    },
-  ]
+const { Search } = Input
+
+interface IProps {
+  user: any
+}
+
+const nunito = Nunito({ subsets: ['latin'] })
+
+const Banks = ({ user }: IProps) => {
+  const [loading, setLoading] = useState(false)
+  const [getFundeds, setGetFundeds] = useState<any>(null)
+  const [filteredGetFundeds, setFilteredGetFundeds] = useState<any>(null)
+
+  const init = () => {
+    setLoading(true)
+    Api.get(`get-fundeds`, user?.token)
+      .then((res: any) => {
+        setGetFundeds(res.data)
+        setFilteredGetFundeds(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    init()
+  }, [])
 
   const columns = [
     {
@@ -78,15 +87,32 @@ const Banks = () => {
     },
   ]
 
+  const onSearch = (value: string) => {
+    const result = getFundeds.filter((contract: any) => {
+      return (contract?.name ?? '').includes(value)
+    })
+
+    setFilteredGetFundeds(result)
+  }
+
   return (
     <Card>
       <Row>
         <Col span={24}>
           <Space className="space-between mb-1">
-            <h3 className="m-0 fw-300">List of get fundeds</h3>
+            <h3 className="m-0 fw-300">
+              <strong className={nunito.className}>List of Get Funded</strong>
+            </h3>
+            <Search allowClear onSearch={onSearch} placeholder="Find by name" />
           </Space>
 
-          <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
+          <Table
+            dataSource={filteredGetFundeds}
+            columns={columns}
+            className={'mt-1'}
+            loading={loading}
+            scroll={{ x: 1300 }}
+          />
         </Col>
       </Row>
     </Card>
@@ -94,3 +120,14 @@ const Banks = () => {
 }
 
 export default Banks
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
