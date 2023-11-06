@@ -6,6 +6,7 @@ import {
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   MoreOutlined,
 } from '@ant-design/icons'
 import {
@@ -20,6 +21,7 @@ import {
   Table,
   Tabs,
   Tooltip,
+  Typography,
 } from 'antd'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -36,6 +38,7 @@ interface IProps {
 }
 
 const Users = ({ user }: IProps) => {
+  const [modal, contextHolder] = Modal.useModal()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [users, setUsers] = useState<any>(null)
@@ -163,6 +166,17 @@ const Users = ({ user }: IProps) => {
                     </Link>
                   ),
                 },
+                {
+                  key: '4',
+                  label: (
+                    <Typography.Text
+                      type="danger"
+                      onClick={() => confirmDeleteUser(data)}
+                    >
+                      Delete User
+                    </Typography.Text>
+                  ),
+                },
               ],
             }}
             placement="bottomRight"
@@ -176,6 +190,23 @@ const Users = ({ user }: IProps) => {
     },
   ]
 
+  const confirmDeleteUser = (data: any) => {
+    modal.confirm({
+      title: 'Delete Action',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <Typography.Text>
+          {`Are you sure want to delete data user `} <b>{data.name}</b>
+        </Typography.Text>
+      ),
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        notification.success({ message: 'User Deleted' })
+      },
+    })
+  }
+
   return (
     <>
       <Card title="Data Users">
@@ -188,6 +219,8 @@ const Users = ({ user }: IProps) => {
         userSession={user}
         userId={userId}
       />
+
+      {contextHolder}
     </>
   )
 }
