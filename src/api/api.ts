@@ -22,7 +22,7 @@ export const Api = {
           return resolve(result.data)
         })
         .catch((error: any) => {
-          if (error.response.status === 401) {
+          if (error.response?.status === 401) {
             message.error({ content: 'user unauthorized to access.' })
 
             setTimeout(() => {

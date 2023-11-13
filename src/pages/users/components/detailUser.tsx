@@ -21,6 +21,7 @@ import {
 import { useEffect, useState } from 'react'
 import { Api } from '@/api/api'
 import { Nunito } from '@next/font/google'
+import { setColorStatus } from '@/utils/userStatus'
 
 interface IProps {
   isModalOpen: boolean
@@ -40,6 +41,15 @@ const ModalDetailUser = ({
   const [loading, setLoading] = useState(false)
   const [tabActive, setTabActive] = useState('1')
   const [dataUser, setDataUser] = useState<any>(null)
+
+  const statusToBeDesabled = ['approved', 'rejected', 'blacklisted']
+  const colorByStatus = {
+    new: 'magenta',
+    reviewing: 'cyan',
+    approved: 'green',
+    rejected: 'red',
+    blacklisted: 'red',
+  }
 
   const items: TabsProps['items'] = [
     {
@@ -79,6 +89,24 @@ const ModalDetailUser = ({
     setTabActive(key)
   }
 
+  const onSetStatus = (status: string) => {
+    setLoading(true)
+    Api.post(`users/${userId}/set-status`, userSession?.token, null, {
+      status: status,
+    })
+      .then((res: any) => {
+        message.success({
+          content: `Success to set status user to ${status.toUpperCase()}`,
+        })
+        initUser()
+      })
+      .catch((err) => {
+        console.log(err)
+        message.error({ content: 'Failed to change status' })
+        setLoading(false)
+      })
+  }
+
   return (
     <Modal
       title={
@@ -87,7 +115,9 @@ const ModalDetailUser = ({
             <Typography.Title level={4} className={nunito.className}>
               Detail User : {dataUser?.full_name}
             </Typography.Title>
-            <Tag>{dataUser.status.toUpperCase()}</Tag>
+            <Tag color={setColorStatus(dataUser?.status)}>
+              {dataUser.status.toUpperCase()}
+            </Tag>
           </Space>
         )
       }
@@ -118,19 +148,34 @@ const ModalDetailUser = ({
 
                 <Space size={10} className="space-between">
                   <Space size={10}>
-                    <Button danger icon={<CloseOutlined />}>
+                    <Button
+                      disabled={statusToBeDesabled.includes(dataUser?.status)}
+                      danger
+                      icon={<CloseOutlined />}
+                      onClick={() => onSetStatus('rejected')}
+                    >
                       REJECT
                     </Button>
-                    <Button type="primary" danger icon={<CloseOutlined />}>
+                    <Button
+                      disabled={statusToBeDesabled.includes(dataUser?.status)}
+                      type="primary"
+                      danger
+                      icon={<CloseOutlined />}
+                      onClick={() => onSetStatus('blacklisted')}
+                    >
                       BLACKLIST
                     </Button>
                   </Space>
                   <Tooltip title="Veriff has not been approved">
                     <Button
-                      disabled
+                      disabled={
+                        !dataUser?.has_veriff ||
+                        statusToBeDesabled.includes(dataUser?.status)
+                      }
                       type="primary"
                       icon={<CheckOutlined />}
                       style={{ width: '200px' }}
+                      onClick={() => onSetStatus('approved')}
                     >
                       APPROVE
                     </Button>

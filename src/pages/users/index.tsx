@@ -7,35 +7,58 @@ import {
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
+  FilterOutlined,
   MoreOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import {
   Button,
   Card,
+  DatePicker,
   Divider,
   Dropdown,
+  Input,
   InputNumber,
   Modal,
   notification,
+  Select,
   Space,
   Table,
   Tabs,
+  Tag,
   Tooltip,
   Typography,
 } from 'antd'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import type { TabsProps } from 'antd'
-import UserInformation from './components/userInformation'
-import ResultVeriff from './components/resultVeriff'
+import { useEffect, useState, useRef } from 'react'
 import { Api } from '@/api/api'
 import { getSession } from 'next-auth/react'
 import moment from 'moment'
 import ModalDetailUser from './components/detailUser'
+import type { ColumnType, ColumnsType, TableProps } from 'antd/es/table'
+import type { InputRef } from 'antd'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
+import { setColorStatus } from '@/utils/userStatus'
+import dayjs from 'dayjs'
+
+const { RangePicker } = DatePicker
 
 interface IProps {
   user: any
 }
+
+interface DataType {
+  key: React.Key
+  name: string
+  email: string
+  country: string
+  phone_number: string
+  status: string
+  wallet_amount: number
+  created_at: Date
+}
+
+type DataIndex = keyof DataType
 
 const Users = ({ user }: IProps) => {
   const [modal, contextHolder] = Modal.useModal()
@@ -43,17 +66,20 @@ const Users = ({ user }: IProps) => {
   const [loading, setLoading] = useState(false)
   const [users, setUsers] = useState<any>(null)
   const [userId, setUserId] = useState<any>(null)
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+  const [filter, setFilter] = useState<any>(null)
+
+  const searchInput = useRef<InputRef>(null)
 
   const initUser = () => {
     setLoading(true)
 
-    Api.get(`users`, user?.token)
+    Api.get(`users`, user?.token, filter)
       .then((res: any) => {
         setUsers(res.data)
       })
       .catch((err) => {
-        console.log(err)
-
         notification.error({ message: 'Failed to fetch data user' })
       })
       .finally(() => setLoading(false))
@@ -61,7 +87,7 @@ const Users = ({ user }: IProps) => {
 
   useEffect(() => {
     initUser()
-  }, [])
+  }, [filter])
 
   const showModal = (data: any) => {
     setIsModalOpen(true)
@@ -73,7 +99,134 @@ const Users = ({ user }: IProps) => {
     setUserId(null)
   }
 
-  const columns = [
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex
+  ) => {
+    confirm()
+    setSearchText(selectedKeys[0])
+    setSearchedColumn(dataIndex)
+
+    const current_filter = filter
+      ? {
+          ...filter,
+          [dataIndex]: selectedKeys[0],
+        }
+      : { [dataIndex]: selectedKeys[0] }
+
+    setFilter(current_filter)
+  }
+
+  const handleReset = (dataIndex: string, clearFilters: () => void) => {
+    clearFilters()
+    setSearchText('')
+  }
+
+  const getColumnSearchProps = (
+    dataIndex: DataIndex
+  ): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        {dataIndex === 'status' ? (
+          <Select
+            placeholder={`Search ${dataIndex}`}
+            value={selectedKeys[0]}
+            onChange={(val) => setSelectedKeys(val ? [val] : [])}
+            style={{ marginBottom: 8, display: 'block' }}
+          >
+            {/* <Select.Option value="new">New</Select.Option> */}
+            <Select.Option value="new">New</Select.Option>
+            <Select.Option value="reviewing">In Review</Select.Option>
+            <Select.Option value="approved">Approved</Select.Option>
+            <Select.Option value="rejected">Rejected</Select.Option>
+            <Select.Option value="blacklisted">Blacklisted</Select.Option>
+          </Select>
+        ) : (
+          <Input
+            ref={searchInput}
+            placeholder={`Search ${dataIndex}`}
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+        )}
+        <Space>
+          <Button
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(dataIndex, clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false })
+              setSearchText((selectedKeys as string[])[0])
+              setSearchedColumn(dataIndex)
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <>
+        {dataIndex !== 'status' ? (
+          <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        ) : (
+          <FilterOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        )}
+      </>
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes((value as string).toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    },
+    render: (text) => text,
+  })
+
+  const columns: ColumnsType<DataType> = [
     {
       title: 'No.',
       dataIndex: 'key',
@@ -86,16 +239,19 @@ const Users = ({ user }: IProps) => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      ...getColumnSearchProps('name'),
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      ...getColumnSearchProps('email'),
     },
     {
       title: 'Country',
       dataIndex: 'country',
       key: 'country',
+      ...getColumnSearchProps('country'),
     },
     {
       title: 'Phone',
@@ -106,6 +262,12 @@ const Users = ({ user }: IProps) => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      ...getColumnSearchProps('status'),
+      render: (status: string) => (
+        <Tag color={setColorStatus(status)}>
+          {status === 'reviewing' ? 'IN REVIEW' : status.toUpperCase()}
+        </Tag>
+      ),
     },
     {
       title: 'Wallet Amount',
@@ -144,7 +306,7 @@ const Users = ({ user }: IProps) => {
           </Tooltip>
 
           <Tooltip title="Edit user">
-            <Link href="/users/1/edit">
+            <Link href={`/users/${data.id}/edit`}>
               <Button size="small">
                 <EditOutlined />
               </Button>
@@ -156,7 +318,7 @@ const Users = ({ user }: IProps) => {
               items: [
                 {
                   key: '2',
-                  label: <Link href={'/users/1/banks'}>Banks</Link>,
+                  label: <Link href={`/users/${data.id}/banks`}>Banks</Link>,
                 },
                 {
                   key: '3',
@@ -207,9 +369,50 @@ const Users = ({ user }: IProps) => {
     })
   }
 
+  const onSelectDateRange = (values: any) => {
+    if (values) {
+      const current_filter = filter
+        ? {
+            ...filter,
+            start_date: dayjs(values[0]).format('YYYY/MM/DD'),
+            end_date: values[1] && dayjs(values[1]).format('YYYY/MM/DD'),
+          }
+        : {
+            start_date: dayjs(values[0]).format('YYYY/MM/DD'),
+            end_date: values[1] && dayjs(values[1]).format('YYYY/MM/DD'),
+          }
+      setFilter(current_filter)
+    } else {
+      const current_filter = filter
+        ? {
+            ...filter,
+            start_date: null,
+            end_date: null,
+          }
+        : {
+            start_date: null,
+            end_date: null,
+          }
+      setFilter(current_filter)
+    }
+  }
+
   return (
     <>
-      <Card title="Data Users">
+      <Card
+        title={
+          <Space className="space-between">
+            <Typography.Title level={3} className="m-0">
+              Data Users
+            </Typography.Title>
+            <RangePicker
+              placeholder={[`Register start date`, `Register end date`]}
+              format={'YYYY/MM/DD'}
+              onChange={(values) => onSelectDateRange(values)}
+            />
+          </Space>
+        }
+      >
         <Table dataSource={users} columns={columns} loading={loading} />
       </Card>
 
