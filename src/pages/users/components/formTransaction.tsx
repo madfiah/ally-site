@@ -1,6 +1,17 @@
+import { Api } from '@/api/api'
 import { SaveOutlined } from '@ant-design/icons'
-import { Button, Form, Input, InputNumber, Modal, Select, Space } from 'antd'
-import { useEffect } from 'react'
+import {
+  Button,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Modal,
+  notification,
+  Select,
+  Space,
+} from 'antd'
+import { useEffect, useState } from 'react'
 
 interface Props {
   action: string
@@ -8,6 +19,8 @@ interface Props {
   modalOpen: boolean
   handleCloseModal: any
   onReloadData: any
+  token: string
+  user_id: any
 }
 
 const FormTransaction = ({
@@ -16,8 +29,11 @@ const FormTransaction = ({
   modalOpen,
   handleCloseModal,
   onReloadData,
+  token,
+  user_id,
 }: Props) => {
   const [form] = Form.useForm()
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!modalOpen) {
@@ -28,8 +44,26 @@ const FormTransaction = ({
   }, [form, modalOpen, wallet_transaction])
 
   const onFinish = (values: any) => {
-    console.log('Success:', values)
-    console.log(wallet_transaction)
+    setLoading(true)
+
+    const url =
+      action === 'edit'
+        ? `transactions/${wallet_transaction?.id}?_method=put`
+        : `transactions/${user_id}`
+
+    Api.post(url, token, null, values)
+      .then((res: any) => {
+        onReloadData()
+        notification.success({ message: 'success to add new transaction' })
+
+        setTimeout(() => {
+          handleCloseModal()
+        }, 500)
+      })
+      .catch((err) => {
+        message.error({ content: err.data.message })
+      })
+      .finally(() => setLoading(false))
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -100,6 +134,7 @@ const FormTransaction = ({
               htmlType="submit"
               icon={<SaveOutlined />}
               style={{ width: 150 }}
+              loading={loading}
             >
               Save
             </Button>

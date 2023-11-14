@@ -2,6 +2,7 @@
 import {
   DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   FileSearchOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
@@ -9,19 +10,30 @@ import {
   Button,
   Card,
   InputNumber,
+  message,
   Modal,
   Space,
   Table,
   Tabs,
   Tag,
   Tooltip,
+  Typography,
 } from 'antd'
 import type { TabsProps } from 'antd'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import FormTransaction from '../components/formTransaction'
 import FormWithdrawal from '../components/formWithdrawal'
+import { Api } from '@/api/api'
+import { getSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
+import { currency } from '@/utils/helpers'
+interface IProps {
+  user: any
+}
 
-const UserTransaction = () => {
+const UserTransaction = ({ user }: IProps) => {
+  const router = useRouter()
+  const [modal, contextHolder] = Modal.useModal()
   const [previewOpen, setPreviewOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalOpenAction, setModalOpenAction] = useState('')
@@ -31,6 +43,49 @@ const UserTransaction = () => {
   const [walletWithdrawal, setWalletWithdrawal] = useState<any>({})
   const [previewImage, setPreviewImage] = useState('')
   const [previewTitle, setPreviewTitle] = useState('')
+
+  const [loadingTransaction, setLoadingTransaction] = useState(false)
+  const [loadingWithdraw, setLoadingWithdraw] = useState(false)
+  const [userName, setUserName] = useState<any>(null)
+  const [transactions, setTransactions] = useState<any>(null)
+  const [walletAmount, setWalletAmount] = useState(0)
+  const [withdraws, setWithdraws] = useState<any>(null)
+
+  const user_id = router.query.id
+
+  const initTransaction = () => {
+    setLoadingTransaction(true)
+
+    Api.get(`transactions/${user_id}`, user?.token)
+      .then((res: any) => {
+        console.log(res.data)
+        setTransactions(res.data.transactions)
+        setWalletAmount(res.data.wallate_balance)
+        setUserName(res.data.user_name)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoadingTransaction(false))
+  }
+
+  const initWithdraw = () => {
+    setLoadingWithdraw(true)
+
+    Api.get(`withdraw/${user_id}`, user?.token)
+      .then((res: any) => {
+        setWithdraws(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoadingWithdraw(false))
+  }
+
+  useEffect(() => {
+    initTransaction()
+    initWithdraw()
+  }, [])
 
   const onChange = (key: string) => {
     console.log(key)
@@ -42,30 +97,29 @@ const UserTransaction = () => {
     setPreviewTitle('')
   }
 
-  const dataSource = [
-    {
-      key: '1',
-      title: 'Top Up',
-      description: 'Top Up',
-      amount: 320,
-      created_at: '2023-03-27 09:54:51',
-    },
-    {
-      key: '2',
-      title: 'Investment',
-      description: 'Test Campaign KB - Investment',
-      amount: -200,
-      created_at: '2023-03-21 11:04:23',
-    },
-    {
-      key: '3',
-      title: 'Top Up',
-      description: 'Top Up',
-      amount: 200,
-      created_at: '2023-03-21 10:32:01',
-    },
-  ]
+  const confirmDeleteTransaction = (data: any) => {
+    modal.confirm({
+      title: 'Delete Action',
+      icon: <ExclamationCircleOutlined />,
+      content: `Are you sure want to delete transaction ${
+        data.title
+      } with amount ${currency(data.amount)} `,
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        Api.post(`transactions/${data.id}?_method=delete`, user?.token)
+          .then((res: any) => {
+            message.success(`Trancation deleted`)
+            initTransaction()
+          })
+          .catch((err) => {
+            message.error('Failed to delete data, please try again')
+          })
+      },
+    })
+  }
 
+  // columns for data transaction
   const columns = [
     {
       title: 'No.',
@@ -90,16 +144,7 @@ const UserTransaction = () => {
       dataIndex: 'amount',
       key: 'amount',
       render: (amount: number) => (
-        <Tag color={`${amount < 0 ? 'red' : 'green'}`}>
-          <InputNumber
-            defaultValue={amount}
-            formatter={(value) =>
-              `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-            }
-            bordered={false}
-            readOnly
-          />
-        </Tag>
+        <Tag color={`${amount < 0 ? 'red' : 'green'}`}>{currency(amount)}</Tag>
       ),
     },
     {
@@ -129,7 +174,11 @@ const UserTransaction = () => {
           </Tooltip>
 
           <Tooltip title="Delete transaction">
-            <Button size="small" danger>
+            <Button
+              size="small"
+              danger
+              onClick={() => confirmDeleteTransaction(data)}
+            >
               <DeleteOutlined />
             </Button>
           </Tooltip>
@@ -138,30 +187,32 @@ const UserTransaction = () => {
     },
   ]
 
-  const dataSourceWithdrawal = [
-    {
-      key: '1',
-      amount: 50,
-      status: 1,
-      created_at: '2023-03-27 09:54:51',
-      transfer_at: '2023-03-27 10:31:21',
-      proof:
-        'https://kapitalboost.sgp1.cdn.digitaloceanspaces.com/user-withdraw/aI6LEJu0g8llgMG7enV8hGm790nugBfAGtTunKbu.png',
-    },
-    {
-      key: '2',
-      amount: 100,
-      status: 0,
-      created_at: '2023-03-28 09:54:51',
-      transfer_at: null,
-      proof: null,
-    },
-  ]
-
   const openImage = (data: any) => {
     setPreviewImage(data.proof)
     setPreviewOpen(true)
     setPreviewTitle('Preview : proof requested at ' + data.created_at)
+  }
+
+  const confirmDeleteWithdraw = (data: any) => {
+    modal.confirm({
+      title: 'Delete Action',
+      icon: <ExclamationCircleOutlined />,
+      content: `Are you sure want to delete withdraw request amount ${currency(
+        data.amount
+      )} `,
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        Api.post(`withdraw/${data.id}?_method=delete`, user?.token)
+          .then((res: any) => {
+            message.success(`Withdraw request deleted`)
+            initWithdraw()
+          })
+          .catch((err) => {
+            message.error('Failed to delete data, please try again')
+          })
+      },
+    })
   }
 
   const columnsWithdrawal = [
@@ -177,16 +228,7 @@ const UserTransaction = () => {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number) => (
-        <InputNumber
-          defaultValue={amount}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
-      ),
+      render: (amount: number) => currency(amount),
     },
     {
       title: 'Status',
@@ -235,13 +277,19 @@ const UserTransaction = () => {
                 setModalWithdrawalAction('edit')
                 setModalWithdrawal(true)
               }}
+              disabled={data.status}
             >
               <EditOutlined />
             </Button>
           </Tooltip>
 
-          <Tooltip title="Delete transaction">
-            <Button size="small" danger>
+          <Tooltip title="Delete withdraw request">
+            <Button
+              size="small"
+              danger
+              onClick={() => confirmDeleteWithdraw(data)}
+              disabled={data.status}
+            >
               <DeleteOutlined />
             </Button>
           </Tooltip>
@@ -267,11 +315,18 @@ const UserTransaction = () => {
                   setModalOpenAction('new')
                   setModalOpen(true)
                 }}
-              ></Button>
+              >
+                Add Transaction
+              </Button>
             </Tooltip>
           </Space>
 
-          <Table className="mt-1" dataSource={dataSource} columns={columns} />
+          <Table
+            className="mt-1"
+            dataSource={transactions}
+            columns={columns}
+            loading={loadingTransaction}
+          />
         </>
       ),
     },
@@ -279,7 +334,11 @@ const UserTransaction = () => {
       key: '2',
       label: `Wallet Withdrawal`,
       children: (
-        <Table dataSource={dataSourceWithdrawal} columns={columnsWithdrawal} />
+        <Table
+          dataSource={withdraws}
+          columns={columnsWithdrawal}
+          loading={loadingWithdraw}
+        />
       ),
     },
   ]
@@ -288,9 +347,12 @@ const UserTransaction = () => {
     <>
       <Card>
         <Space className="space-between mb-1">
-          <h3 className="m-0 fw-300">Data Wallet - Ahmad Ramli</h3>
+          <Typography.Title level={4} className="mb-1 mt-1">
+            Data Wallet {userName && `- ${userName}`}
+          </Typography.Title>
+
           <h3 className="m-0 fw-300">
-            Saldo is <b>$320</b>
+            Wallet balance : <b>{currency(walletAmount)}</b>
           </h3>
         </Space>
 
@@ -320,8 +382,10 @@ const UserTransaction = () => {
         modalOpen={modalOpen}
         handleCloseModal={() => setModalOpen(false)}
         wallet_transaction={walletTransaction}
-        onReloadData={() => console.log('Reload data transaction')}
+        onReloadData={initTransaction}
         action={modalOpenAction}
+        token={user?.token}
+        user_id={user_id}
       />
 
       <FormWithdrawal
@@ -331,8 +395,21 @@ const UserTransaction = () => {
         onReloadData={() => console.log('Reload data withdrawal')}
         action={modalWithdrawalAction}
       />
+
+      {contextHolder}
     </>
   )
 }
 
 export default UserTransaction
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
