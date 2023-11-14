@@ -87,8 +87,8 @@ const FormWithdrawal = ({
           rules={[{ required: true }]}
         >
           <Select placeholder="Select status" allowClear>
-            <Select.Option value={1}>Paid</Select.Option>
-            <Select.Option value={0}>Pending</Select.Option>
+            <Select.Option value={true}>Paid</Select.Option>
+            <Select.Option value={false}>Pending</Select.Option>
           </Select>
         </Form.Item>
 

@@ -40,6 +40,7 @@ import type { InputRef } from 'antd'
 import type { FilterConfirmProps } from 'antd/es/table/interface'
 import { setColorStatus } from '@/utils/userStatus'
 import dayjs from 'dayjs'
+import { currency } from '@/utils/helpers'
 
 const { RangePicker } = DatePicker
 
@@ -273,17 +274,7 @@ const Users = ({ user }: IProps) => {
       title: 'Wallet Amount',
       dataIndex: 'wallet_amount',
       key: 'amount',
-      render: (amount: number) => (
-        <InputNumber
-          style={{ width: '100%' }}
-          defaultValue={amount}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
-      ),
+      render: (amount: number) => currency(amount),
     },
     {
       title: 'Registered at',
@@ -323,7 +314,7 @@ const Users = ({ user }: IProps) => {
                 {
                   key: '3',
                   label: (
-                    <Link href={'/users/1/transactions'}>
+                    <Link href={`/users/${data.id}/transactions`}>
                       Detail transaction
                     </Link>
                   ),
