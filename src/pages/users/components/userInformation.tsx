@@ -10,50 +10,52 @@ interface IProps {
 const UserInformation = ({ user }: IProps) => {
   return (
     <div>
-      {user !== null ? (
+      {user ? (
         <>
           <Row gutter={20}>
             <Col span={12}>
               <h4 className="m-0 p-0">First Name :</h4>
-              <Typography className="pb-1 fs-2">{user.firstname}</Typography>
+              <Typography className="pb-1 fs-2">{user?.firstname}</Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Last Name :</h4>
-              <Typography className="pb-1 fs-2">{user.lastname}</Typography>
+              <Typography className="pb-1 fs-2">{user?.lastname}</Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Email :</h4>
-              <Typography className="pb-1 fs-2">{user.email}</Typography>
+              <Typography className="pb-1 fs-2">{user?.email}</Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Date of Birth :</h4>
-              <Typography className="pb-1 fs-2">{user.dbo || '-'}</Typography>
+              <Typography className="pb-1 fs-2">{user?.dbo || '-'}</Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Phone No :</h4>
               <Typography className="pb-1 fs-2">
-                {user.phone_no || '-'}
+                {user?.phone_no || '-'}
               </Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Country :</h4>
-              <Typography className="pb-1 fs-2">{user.country}</Typography>
+              <Typography className="pb-1 fs-2">{user?.country}</Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Nationality :</h4>
               <Typography className="pb-1 fs-2">
-                {user.nationality || '-'}
+                {user?.nationality || '-'}
               </Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Residential Address :</h4>
               <Typography className="pb-1 fs-2">
-                {user.address || '-'}
+                {user?.address || '-'}
               </Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">How You Know Us :</h4>
-              <Typography className="pb-1 fs-2">{user.how_you_know}</Typography>
+              <Typography className="pb-1 fs-2">
+                {user?.how_you_know}
+              </Typography>
             </Col>
           </Row>
 
@@ -64,31 +66,31 @@ const UserInformation = ({ user }: IProps) => {
           <Row gutter={20}>
             <Col span={12}>
               <h4 className="m-0 p-0">NRIC / Passport Number :</h4>
-              <Typography className="pb-1 fs-2">{user.nric || '-'}</Typography>
+              <Typography className="pb-1 fs-2">{user?.nric || '-'}</Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">IC Country :</h4>
               <Typography className="pb-1 fs-2">
-                {user.ic_country || '-'}
+                {user?.ic_country || '-'}
               </Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Full Name in IC :</h4>
               <Typography className="pb-1 fs-2">
-                {user.ic_name || '-'}
+                {user?.ic_name || '-'}
               </Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Status Verified :</h4>
               <Typography className="pb-1 fs-2">
-                {user.is_verified ? 'VERIFIED' : 'NOT VERIFIED'}
+                {user?.is_verified ? 'VERIFIED' : 'NOT VERIFIED'}
               </Typography>
             </Col>
             <Col span={8}>
               <h4 className="m-0 p-0">ID Card / Passport (front) :</h4>
-              {user.nric_file ? (
-                <a href={user.nric_file} target={`_blank`}>
-                  <img src={user.nric_file} width={`100%`} alt={`user nric`} />
+              {user?.nric_file ? (
+                <a href={user?.nric_file} target={`_blank`}>
+                  <img src={user?.nric_file} width={`100%`} alt={`user nric`} />
                 </a>
               ) : (
                 <>
@@ -102,10 +104,10 @@ const UserInformation = ({ user }: IProps) => {
             </Col>
             <Col span={8}>
               <h4 className="m-0 p-0">ID Card / Passport (back) :</h4>
-              {user.nric_file_back ? (
-                <a href={user.nric_file_back} target={`_blank`}>
+              {user?.nric_file_back ? (
+                <a href={user?.nric_file_back} target={`_blank`}>
                   <img
-                    src={user.nric_file_back}
+                    src={user?.nric_file_back}
                     width={`100%`}
                     alt={`user nric back`}
                   />
@@ -122,10 +124,10 @@ const UserInformation = ({ user }: IProps) => {
             </Col>
             <Col span={8}>
               <h4 className="m-0 p-0">Proof of Address :</h4>
-              {user.address_proof ? (
-                <a href={user.address_proof} target={`_blank`}>
+              {user?.address_proof ? (
+                <a href={user?.address_proof} target={`_blank`}>
                   <img
-                    src={user.address_proof}
+                    src={user?.address_proof}
                     width={`100%`}
                     alt={`user address proof`}
                   />
