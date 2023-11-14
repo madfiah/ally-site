@@ -35,12 +35,14 @@ const ResultVeriff = ({ veriff }: IProps) => {
           <Row gutter={20}>
             <Col span={12}>
               <h4 className="m-0 p-0">Session ID :</h4>
-              <Typography className="pb-1 fs-2">{veriff.session_id}</Typography>
+              <Typography className="pb-1 fs-2">
+                {veriff?.session_id}
+              </Typography>
             </Col>
             <Col span={12}>
               <h4 className="m-0 p-0">Status :</h4>
               <Typography.Text className="pb-1 fs-2" type="success">
-                {veriff.status.toUpperCase()}
+                {veriff?.status.toUpperCase()}
               </Typography.Text>
             </Col>
             <Col span={24}>
@@ -56,7 +58,10 @@ const ResultVeriff = ({ veriff }: IProps) => {
           <Space className="space-between">
             <>
               <Tooltip title="See the detail on veriff station">
-                <Link href={VERIFF_STATION + veriff.session_id} target="_blank">
+                <Link
+                  href={VERIFF_STATION + veriff?.session_id}
+                  target="_blank"
+                >
                   <Button
                     type="primary"
                     icon={<FundProjectionScreenOutlined />}
@@ -81,7 +86,7 @@ const ResultVeriff = ({ veriff }: IProps) => {
                 icon={<DeleteFilled />}
                 style={{ width: '160px' }}
                 danger
-                disabled={veriff.code === '9001'}
+                disabled={veriff?.code === '9001'}
               >
                 Delete Session
               </Button>
