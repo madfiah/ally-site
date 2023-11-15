@@ -300,14 +300,14 @@ const Users = ({ user }: IProps) => {
           </Tooltip>
 
           <Tooltip title="Edit user">
-            {/* <Link href={`/users/${data.id}/edit`}> */}
-            <Button
-              size="small"
-              onClick={() => router.push(`users/${data.id}/edit`)}
-            >
-              <EditOutlined />
-            </Button>
-            {/* </Link> */}
+            <Link href={`/users/${data.id}`}>
+              <Button
+                size="small"
+                // onClick={() => router.push(`users/${data.id}/edit`)}
+              >
+                <EditOutlined />
+              </Button>
+            </Link>
           </Tooltip>
 
           <Dropdown
