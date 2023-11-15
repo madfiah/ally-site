@@ -42,6 +42,8 @@ import { setColorStatus } from '@/utils/userStatus'
 import dayjs from 'dayjs'
 import { currency } from '@/utils/helpers'
 
+import { useRouter } from 'next/router'
+
 const { RangePicker } = DatePicker
 
 interface IProps {
@@ -62,6 +64,7 @@ interface DataType {
 type DataIndex = keyof DataType
 
 const Users = ({ user }: IProps) => {
+  const router = useRouter()
   const [modal, contextHolder] = Modal.useModal()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -297,11 +300,14 @@ const Users = ({ user }: IProps) => {
           </Tooltip>
 
           <Tooltip title="Edit user">
-            <Link href={`/users/${data.id}/edit`}>
-              <Button size="small">
-                <EditOutlined />
-              </Button>
-            </Link>
+            {/* <Link href={`/users/${data.id}/edit`}> */}
+            <Button
+              size="small"
+              onClick={() => router.push(`users/${data.id}/edit`)}
+            >
+              <EditOutlined />
+            </Button>
+            {/* </Link> */}
           </Tooltip>
 
           <Dropdown
