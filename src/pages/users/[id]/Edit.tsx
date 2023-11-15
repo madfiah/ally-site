@@ -21,7 +21,8 @@ import {
 } from 'antd'
 import { getSession } from 'next-auth/react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+// import { useRouter } from 'next/router'
+import router from 'next/router'
 import { useEffect, useState } from 'react'
 
 const { Option } = Select
@@ -32,17 +33,18 @@ interface IProps {
 
 const FormUser = ({ user }: IProps) => {
   const [form] = Form.useForm()
-  const router = useRouter()
+  // const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [buttonLoading, setButtonLoading] = useState(false)
   const [dataUser, setDataUser] = useState<any>(null)
 
-  const user_id = router.query.id
+  // const user_id = router.query.id
+  const { id } = router.query
 
-  const initData = () => {
+  const initData = async () => {
     setLoading(true)
 
-    Api.get(`users/${user_id}`, user?.token)
+    await Api.get(`users/${id}`, user?.token)
       .then((res: any) => {
         setDataUser(res.data)
         form.setFieldsValue(res.data)
@@ -50,14 +52,17 @@ const FormUser = ({ user }: IProps) => {
       .catch((err) => {
         console.log(err)
         setDataUser(false)
-        message.error(err.message)
+        // message.error(err.data.message)
       })
       .finally(() => setLoading(false))
   }
 
   useEffect(() => {
+    if (!id) {
+      return
+    }
     initData()
-  }, [user_id])
+  }, [id])
 
   const onFinish = (values: any) => {
     setButtonLoading(true)
