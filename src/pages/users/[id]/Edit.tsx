@@ -57,7 +57,7 @@ const FormUser = ({ user }: IProps) => {
 
   useEffect(() => {
     initData()
-  }, [])
+  }, [user_id])
 
   const onFinish = (values: any) => {
     setButtonLoading(true)
