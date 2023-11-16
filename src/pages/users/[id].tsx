@@ -58,9 +58,6 @@ const FormUser = ({ user }: IProps) => {
   }
 
   useEffect(() => {
-    // if (!id) {
-    //   return
-    // }
     initData()
   }, [id])
 

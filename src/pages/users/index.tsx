@@ -1,10 +1,5 @@
 import {
-  AccountBookOutlined,
-  BankOutlined,
   BlockOutlined,
-  CheckOutlined,
-  CloseOutlined,
-  DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
   FilterOutlined,
@@ -15,16 +10,13 @@ import {
   Button,
   Card,
   DatePicker,
-  Divider,
   Dropdown,
   Input,
-  InputNumber,
   Modal,
   notification,
   Select,
   Space,
   Table,
-  Tabs,
   Tag,
   Tooltip,
   Typography,
@@ -301,10 +293,7 @@ const Users = ({ user }: IProps) => {
 
           <Tooltip title="Edit user">
             <Link href={`/users/${data.id}`}>
-              <Button
-                size="small"
-                // onClick={() => router.push(`users/${data.id}/edit`)}
-              >
+              <Button size="small">
                 <EditOutlined />
               </Button>
             </Link>

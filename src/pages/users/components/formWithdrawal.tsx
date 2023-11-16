@@ -1,16 +1,30 @@
 import { PlusOutlined, SaveOutlined } from '@ant-design/icons'
 import {
   Button,
+  DatePicker,
   Form,
   Input,
   InputNumber,
+  message,
   Modal,
   Select,
   Space,
   Upload,
 } from 'antd'
 import type { UploadFile } from 'antd/es/upload/interface'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import type { UploadProps } from 'antd'
+import { Api } from '@/api/api'
+import dayjs from 'dayjs'
+import weekday from 'dayjs/plugin/weekday'
+import localeData from 'dayjs/plugin/localeData'
+import timezone from 'dayjs/plugin/timezone'
+
+dayjs.extend(weekday)
+dayjs.extend(localeData)
+dayjs.extend(timezone)
+
+dayjs.tz.setDefault('Asia/Singapore')
 
 interface Props {
   action: string
@@ -18,9 +32,10 @@ interface Props {
   modalOpen: boolean
   handleCloseModal: any
   onReloadData: any
+  token: string
 }
 
-const fileList: UploadFile[] = []
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const FormWithdrawal = ({
   action,
@@ -28,20 +43,47 @@ const FormWithdrawal = ({
   modalOpen,
   handleCloseModal,
   onReloadData,
+  token,
 }: Props) => {
   const [form] = Form.useForm()
+  const [proof, setProof] = useState<UploadFile[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!modalOpen) {
       form.resetFields()
     } else {
       form.setFieldsValue(wallet_withdrawal)
+
+      const transfer_at = wallet_withdrawal?.transfer_at
+        ? dayjs(wallet_withdrawal?.transfer_at)
+        : null
+      form.setFieldValue('transfer_at', transfer_at)
     }
   }, [form, modalOpen, wallet_withdrawal])
 
   const onFinish = (values: any) => {
-    console.log('Success:', values)
-    console.log(wallet_withdrawal)
+    setLoading(true)
+
+    Api.post(
+      `withdraw/${wallet_withdrawal?.id}?_method=put`,
+      token,
+      null,
+      values
+    )
+      .then((res: any) => {
+        onReloadData()
+        message.success({ content: res.message })
+
+        setTimeout(() => {
+          handleCloseModal()
+        }, 500)
+      })
+      .catch((err) => {
+        console.log(err)
+        message.error({ content: err.data.message })
+      })
+      .finally(() => setLoading(false))
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -51,6 +93,32 @@ const FormWithdrawal = ({
 
   const onReset = () => {
     form.setFieldsValue(wallet_withdrawal)
+  }
+
+  const handleUpload: UploadProps['onChange'] = ({
+    file,
+    fileList: newFileList,
+  }) => {
+    // let newFileList = [...info.fileList]
+    // if (file.status === 'done') {
+    //   form.setFieldValue('proof', file.response.data.file_path)
+    // }
+
+    newFileList = newFileList.map((file) => {
+      if (file.response) {
+        // Component will show file.url as link
+        const { data } = file.response
+
+        file.uid = Math.random().toString()
+        file.name = Math.random().toString()
+        file.url = data.file_path
+
+        form.setFieldValue('proof', data.file_path)
+      }
+      return file
+    })
+
+    setProof(newFileList)
   }
 
   return (
@@ -92,15 +160,15 @@ const FormWithdrawal = ({
           </Select>
         </Form.Item>
 
-        <Form.Item
-          label="Files"
-          // name="content"
-          // rules={[{ required: true, message: 'Please input the content!' }]}
-        >
+        <Form.Item label="Proof" name="proof" rules={[{ required: true }]}>
           <Upload
-            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+            action={`${API_URL}/withdraw/upload/${wallet_withdrawal.id}`}
+            headers={{
+              Authorization: `Bearer ${token}`,
+            }}
             listType="picture-card"
-            defaultFileList={[...fileList]}
+            onChange={handleUpload}
+            defaultFileList={[...proof]}
             maxCount={1}
           >
             {/* <Button icon={<UploadOutlined />}>Upload</Button> */}
@@ -109,6 +177,14 @@ const FormWithdrawal = ({
               <div style={{ marginTop: 8 }}>Upload</div>
             </div>
           </Upload>
+        </Form.Item>
+
+        <Form.Item
+          label="Transfer at"
+          name="transfer_at"
+          rules={[{ required: true }]}
+        >
+          <DatePicker format={`YYYY-MM-DD`} />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 6, span: 18 }}>

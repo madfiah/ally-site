@@ -4,6 +4,8 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   FileSearchOutlined,
+  Loading3QuartersOutlined,
+  LoadingOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
 import {
@@ -188,9 +190,13 @@ const UserTransaction = ({ user }: IProps) => {
   ]
 
   const openImage = (data: any) => {
-    setPreviewImage(data.proof)
+    setPreviewImage('')
     setPreviewOpen(true)
     setPreviewTitle('Preview : proof requested at ' + data.created_at)
+
+    setTimeout(() => {
+      setPreviewImage(data.proof)
+    }, 500)
   }
 
   const confirmDeleteWithdraw = (data: any) => {
@@ -262,7 +268,7 @@ const UserTransaction = ({ user }: IProps) => {
             <Button
               type="primary"
               size="small"
-              disabled={data.proof === null}
+              disabled={!data.status || data.proof === null}
               onClick={() => openImage(data)}
             >
               <FileSearchOutlined />
@@ -371,11 +377,18 @@ const UserTransaction = ({ user }: IProps) => {
         onCancel={handleCancel}
         style={{ top: 20 }}
       >
-        <img
-          alt={previewTitle}
-          style={{ width: '100%', marginTop: '15px' }}
-          src={previewImage}
-        />
+        {previewImage === '' ? (
+          <div className="text-center my-5">
+            <LoadingOutlined style={{ fontSize: '2rem' }} />
+          </div>
+        ) : (
+          <img
+            alt={previewTitle}
+            style={{ width: '100%', marginTop: '15px' }}
+            src={previewImage}
+            loading={'lazy'}
+          />
+        )}
       </Modal>
 
       <FormTransaction
@@ -392,8 +405,9 @@ const UserTransaction = ({ user }: IProps) => {
         modalOpen={modalWithdrawal}
         handleCloseModal={() => setModalWithdrawal(false)}
         wallet_withdrawal={walletWithdrawal}
-        onReloadData={() => console.log('Reload data withdrawal')}
+        onReloadData={initWithdraw}
         action={modalWithdrawalAction}
+        token={user?.token}
       />
 
       {contextHolder}
