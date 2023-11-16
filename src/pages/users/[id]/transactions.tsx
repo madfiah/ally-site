@@ -408,6 +408,7 @@ const UserTransaction = ({ user }: IProps) => {
         onReloadData={initWithdraw}
         action={modalWithdrawalAction}
         token={user?.token}
+        user_id={user_id}
       />
 
       {contextHolder}

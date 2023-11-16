@@ -51,19 +51,6 @@ const ModalDetailUser = ({
     blacklisted: 'red',
   }
 
-  const items: TabsProps['items'] = [
-    {
-      key: '1',
-      label: `User Information`,
-      children: <UserInformation user={dataUser} />,
-    },
-    {
-      key: '2',
-      label: `Verif Information`,
-      children: <ResultVeriff veriff={dataUser?.veriff} />,
-    },
-  ]
-
   const initUser = () => {
     setLoading(true)
 
@@ -76,6 +63,25 @@ const ModalDetailUser = ({
       })
       .finally(() => setLoading(false))
   }
+
+  const items: TabsProps['items'] = [
+    {
+      key: '1',
+      label: `User Information`,
+      children: <UserInformation user={dataUser} />,
+    },
+    {
+      key: '2',
+      label: `Verif Information`,
+      children: (
+        <ResultVeriff
+          veriff={dataUser?.veriff}
+          token={userSession?.token}
+          initUser={initUser}
+        />
+      ),
+    },
+  ]
 
   useEffect(() => {
     if (userId !== null) {
