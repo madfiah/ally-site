@@ -266,7 +266,7 @@ const FormWithdrawal = ({
           rules={[{ required: true, message: 'Proof of transfer is required' }]}
         >
           <Upload
-            action={`${API_URL}/withdraw/upload/${wallet_withdrawal.id}`}
+            action={`${API_URL}/withdraw/upload/${wallet_withdrawal?.id}`}
             headers={{
               Authorization: `Bearer ${token}`,
             }}
