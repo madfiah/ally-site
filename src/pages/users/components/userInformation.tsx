@@ -1,8 +1,6 @@
 import { Col, Divider, Row } from 'antd'
 import { Typography } from 'antd'
 
-const { Title } = Typography
-
 interface IProps {
   user: any
 }
