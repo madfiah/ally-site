@@ -7,6 +7,7 @@ import {
   SearchOutlined,
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Card,
   DatePicker,
@@ -27,14 +28,12 @@ import { Api } from '@/api/api'
 import { getSession } from 'next-auth/react'
 import moment from 'moment'
 import ModalDetailUser from './components/detailUser'
-import type { ColumnType, ColumnsType, TableProps } from 'antd/es/table'
+import type { ColumnType, ColumnsType } from 'antd/es/table'
 import type { InputRef } from 'antd'
 import type { FilterConfirmProps } from 'antd/es/table/interface'
 import { setColorStatus } from '@/utils/userStatus'
 import dayjs from 'dayjs'
 import { currency } from '@/utils/helpers'
-
-import { useRouter } from 'next/router'
 
 const { RangePicker } = DatePicker
 
@@ -56,7 +55,6 @@ interface DataType {
 type DataIndex = keyof DataType
 
 const Users = ({ user }: IProps) => {
-  const router = useRouter()
   const [modal, contextHolder] = Modal.useModal()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -385,6 +383,11 @@ const Users = ({ user }: IProps) => {
 
   return (
     <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Users</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
+
       <Card
         title={
           <Space className="space-between">

@@ -43,13 +43,6 @@ const ModalDetailUser = ({
   const [dataUser, setDataUser] = useState<any>(null)
 
   const statusToBeDesabled = ['approved', 'rejected', 'blacklisted']
-  const colorByStatus = {
-    new: 'magenta',
-    reviewing: 'cyan',
-    approved: 'green',
-    rejected: 'red',
-    blacklisted: 'red',
-  }
 
   const initUser = () => {
     setLoading(true)

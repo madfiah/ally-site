@@ -3,7 +3,6 @@ import {
   Button,
   DatePicker,
   Form,
-  Input,
   InputNumber,
   message,
   Modal,
@@ -299,6 +298,7 @@ const FormWithdrawal = ({
               htmlType="submit"
               icon={<SaveOutlined />}
               style={{ width: 150 }}
+              loading={loading}
             >
               Save
             </Button>

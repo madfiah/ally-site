@@ -89,8 +89,8 @@ const KbLayout = ({ children, session }: LayoutProps) => {
             <Content style={{ margin: '0 16px' }}>
               <div
                 style={{
-                  padding: 15,
-                  marginTop: 20,
+                  padding: '0 15',
+                  marginTop: 16,
                   minHeight: 360,
                 }}
               >

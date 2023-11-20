@@ -2,16 +2,13 @@
 import { Api } from '@/api/api'
 import {
   CloseCircleOutlined,
-  CloseOutlined,
   DeleteFilled,
   FundProjectionScreenOutlined,
 } from '@ant-design/icons'
 import {
-  Alert,
   Button,
   Col,
   Divider,
-  Image,
   notification,
   Row,
   Space,
@@ -35,7 +32,7 @@ const ResultVeriff = ({ veriff, token, initUser }: IProps) => {
 
   const importDocument = async () => {
     setLoadingImport(true)
-    // veriff/import/user/documents/${this.state.user.id}
+
     Api.get(`users/${veriff?.user_id}/import/document`, token)
       .then((res: any) => {
         notification.success({ message: res.data.message })

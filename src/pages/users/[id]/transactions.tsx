@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import {
   DeleteOutlined,
+  DownOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
   FileSearchOutlined,
@@ -9,8 +10,10 @@ import {
   PlusOutlined,
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Card,
+  Dropdown,
   InputNumber,
   message,
   Modal,
@@ -29,6 +32,9 @@ import { Api } from '@/api/api'
 import { getSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { currency } from '@/utils/helpers'
+import type { MenuProps } from 'antd'
+import Link from 'next/link'
+
 interface IProps {
   user: any
 }
@@ -60,7 +66,6 @@ const UserTransaction = ({ user }: IProps) => {
 
     Api.get(`transactions/${user_id}`, user?.token)
       .then((res: any) => {
-        console.log(res.data)
         setTransactions(res.data.transactions)
         setWalletAmount(res.data.wallate_balance)
         setUserName(res.data.user_name)
@@ -90,7 +95,8 @@ const UserTransaction = ({ user }: IProps) => {
   }, [])
 
   const onChange = (key: string) => {
-    console.log(key)
+    // console.log(key)
+    return
   }
 
   const handleCancel = () => {
@@ -304,7 +310,7 @@ const UserTransaction = ({ user }: IProps) => {
     },
   ]
 
-  const items: TabsProps['items'] = [
+  const itemsTab: TabsProps['items'] = [
     {
       key: '1',
       label: `Wallet Transaction`,
@@ -349,8 +355,41 @@ const UserTransaction = ({ user }: IProps) => {
     },
   ]
 
+  const items: MenuProps['items'] = [
+    {
+      key: '1',
+      label: <Link href={`/users/${user_id}`}>Edit user</Link>,
+    },
+    {
+      key: '2',
+      label: <Link href={`/users/${user_id}/banks`}>Bank account</Link>,
+    },
+  ]
+
   return (
     <>
+      <Breadcrumb style={{ margin: '0 0 16px' }}>
+        <Breadcrumb.Item>Users</Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link href={`/users`}>List</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Dropdown
+            menu={{
+              items,
+            }}
+            placement="bottomRight"
+          >
+            <a onClick={(e) => e.preventDefault()}>
+              <Space>
+                Transactions
+                <DownOutlined />
+              </Space>
+            </a>
+          </Dropdown>
+        </Breadcrumb.Item>
+      </Breadcrumb>
+
       <Card>
         <Space className="space-between mb-1">
           <Typography.Title level={4} className="mb-1 mt-1">
@@ -365,7 +404,7 @@ const UserTransaction = ({ user }: IProps) => {
         <Tabs
           tabPosition="right"
           defaultActiveKey="1"
-          items={items}
+          items={itemsTab}
           onChange={onChange}
         />
       </Card>
