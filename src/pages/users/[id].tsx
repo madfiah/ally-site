@@ -10,6 +10,7 @@ import {
   Button,
   Card,
   Col,
+  DatePicker,
   Divider,
   Dropdown,
   Form,
@@ -24,10 +25,21 @@ import {
 } from 'antd'
 import { getSession } from 'next-auth/react'
 import Link from 'next/link'
-// import { useRouter } from 'next/router'
-import router from 'next/router'
+import { useRouter } from 'next/router'
+// import router from 'next/router'
 import { useEffect, useState } from 'react'
 import type { MenuProps } from 'antd'
+
+import weekday from 'dayjs/plugin/weekday'
+import timezone from 'dayjs/plugin/timezone'
+import localeData from 'dayjs/plugin/localeData'
+import dayjs from 'dayjs'
+
+dayjs.extend(weekday)
+dayjs.extend(localeData)
+dayjs.extend(timezone)
+
+dayjs.tz.setDefault('Asia/Singapore')
 
 const { Option } = Select
 
@@ -37,10 +49,11 @@ interface IProps {
 
 const FormUser = ({ user }: IProps) => {
   const [form] = Form.useForm()
-  // const router = useRouter()
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [buttonLoading, setButtonLoading] = useState(false)
   const [dataUser, setDataUser] = useState<any>(null)
+  const [countryOptions, setCountryOptions] = useState<any>(null)
 
   // const user_id = router.query.id
   const { id } = router.query
@@ -50,8 +63,14 @@ const FormUser = ({ user }: IProps) => {
 
     await Api.get(`users/${id}`, user?.token)
       .then((res: any) => {
-        setDataUser(res.data)
-        form.setFieldsValue(res.data)
+        const params = {
+          ...res.data,
+          dob: res.data.dob ? dayjs(res.data.dob) : null,
+        }
+
+        setDataUser(params)
+        form.setFieldsValue(params)
+        countryOption()
       })
       .catch((err) => {
         console.log(err)
@@ -59,6 +78,16 @@ const FormUser = ({ user }: IProps) => {
         // message.error(err.data.message)
       })
       .finally(() => setLoading(false))
+  }
+
+  const countryOption = async () => {
+    await Api.get(`countries-option`, user?.token)
+      .then((res: any) => {
+        setCountryOptions(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
   }
 
   useEffect(() => {
@@ -117,6 +146,7 @@ const FormUser = ({ user }: IProps) => {
           </Dropdown>
         </Breadcrumb.Item>
       </Breadcrumb>
+
       <Card>
         {loading ? (
           <div className="text-center my-5">
@@ -193,7 +223,7 @@ const FormUser = ({ user }: IProps) => {
                           },
                         ]}
                       >
-                        <Input />
+                        <Input readOnly />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -207,7 +237,21 @@ const FormUser = ({ user }: IProps) => {
                           },
                         ]}
                       >
-                        <Input />
+                        <Input readOnly />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label="Date of Birth"
+                        name="dob"
+                        rules={[
+                          {
+                            required: true,
+                            message: 'Please input the user birth date!',
+                          },
+                        ]}
+                      >
+                        <DatePicker style={{ width: '100%' }} />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -221,10 +265,12 @@ const FormUser = ({ user }: IProps) => {
                           },
                         ]}
                       >
-                        <Select placeholder="Select country" allowClear>
-                          <Option value="INDONESIA">INDONESIA</Option>
-                          <Option value="SINGAPORE">SINGAPORE</Option>
-                        </Select>
+                        <Select
+                          showSearch
+                          placeholder="Select country"
+                          allowClear
+                          options={countryOptions}
+                        ></Select>
                       </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -238,10 +284,12 @@ const FormUser = ({ user }: IProps) => {
                           },
                         ]}
                       >
-                        <Select placeholder="Select country" allowClear>
-                          <Option value="INDONESIA">INDONESIA</Option>
-                          <Option value="SINGAPORE">SINGAPORE</Option>
-                        </Select>
+                        <Select
+                          placeholder="Select country"
+                          showSearch
+                          allowClear
+                          options={countryOptions}
+                        ></Select>
                       </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -294,10 +342,12 @@ const FormUser = ({ user }: IProps) => {
                           },
                         ]}
                       >
-                        <Select placeholder="Select country" allowClear>
-                          <Option value="INDONESIA">INDONESIA</Option>
-                          <Option value="SINGAPORE">SINGAPORE</Option>
-                        </Select>
+                        <Select
+                          placeholder="Select country"
+                          allowClear
+                          showSearch
+                          options={countryOptions}
+                        ></Select>
                       </Form.Item>
                     </Col>
                     <Col span={12}>
