@@ -1,60 +1,167 @@
+import { Api } from '@/api/api'
 import {
   DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   PlusOutlined,
   RetweetOutlined,
+  SearchOutlined,
   TwitterOutlined,
 } from '@ant-design/icons'
-import { Button, Card, Space, Table, Tooltip } from 'antd'
-import { useState } from 'react'
+import {
+  Breadcrumb,
+  Button,
+  Card,
+  Input,
+  Modal,
+  notification,
+  Space,
+  Table,
+  Tooltip,
+  Typography,
+} from 'antd'
+import { getSession } from 'next-auth/react'
+import { useEffect, useRef, useState } from 'react'
 import FormAdmin from './components/formAdmin'
+import type { InputRef } from 'antd'
+import type { ColumnType, ColumnsType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
 
-const Admins = () => {
+interface IProps {
+  user: any
+}
+
+interface DataType {
+  key: string
+  name: string
+  email: string
+  role: string
+}
+
+type DataIndex = keyof DataType
+
+const Admins = ({ user }: IProps) => {
+  const [modal, contextHolder] = Modal.useModal()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [formAction, setFormAction] = useState('')
   const [admin, setAdmin] = useState({})
+  const [admins, setAdmins] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
 
-  const dataSource = [
-    {
-      key: '1',
-      name: 'Assegaf',
-      email: 'assegaf@kapitalboost.co.id',
-      role: 'Super Admin',
-      created_at: '1/25/2023, 10:13:01',
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+  const searchInput = useRef<InputRef>(null)
+
+  const initData = () => {
+    setLoading(true)
+
+    Api.get(`admins`, user?.token)
+      .then((res: any) => {
+        setAdmins(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    initData()
+  }, [])
+
+  const getColumnSearchProps = (
+    dataIndex: DataIndex
+  ): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() =>
+            handleSearch(selectedKeys as string[], confirm, dataIndex)
+          }
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false })
+              setSearchText((selectedKeys as string[])[0])
+              setSearchedColumn(dataIndex)
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes((value as string).toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
     },
-    {
-      key: '2',
-      name: 'Ahmad',
-      email: 'ahmad@kapitalboost.co.id',
-      role: 'Super Admin',
-      created_at: '1/25/2023, 10:13:01',
-    },
-    {
-      key: '3',
-      name: 'Erly',
-      email: 'erly@kapitalboost.co.id',
-      role: 'Super Admin',
-      created_at: '1/25/2023, 10:13:01',
-    },
-    {
-      key: '4',
-      name: 'Naseha',
-      email: 'naseha@kapitalboost.co.id',
-      role: 'Admin',
-      created_at: '1/25/2023, 10:13:01',
-    },
-  ]
+    render: (text) => text,
+  })
 
   const columns = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      ...getColumnSearchProps('name'),
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      ...getColumnSearchProps('email'),
     },
     {
       title: 'Role',
@@ -85,7 +192,7 @@ const Admins = () => {
             </Button>
           </Tooltip>
           <Tooltip title="Delete data admin">
-            <Button size="small" danger>
+            <Button size="small" danger onClick={() => confirmDeleteUser(data)}>
               <DeleteOutlined />
             </Button>
           </Tooltip>
@@ -100,30 +207,97 @@ const Admins = () => {
     setIsFormOpen(true)
   }
 
+  const confirmDeleteUser = (data: any) => {
+    modal.confirm({
+      title: 'Delete Action',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <Typography.Text>
+          {`Are you sure want to delete data admin `} <b>{data.name}</b>
+        </Typography.Text>
+      ),
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        Api.post(`admins/${data?.id}?_method=delete`, user?.token)
+          .then((res: any) => {
+            notification.success({ message: res.message })
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+
+        initData()
+      },
+    })
+  }
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex
+  ) => {
+    confirm()
+    setSearchText(selectedKeys[0])
+    setSearchedColumn(dataIndex)
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+    setSearchText('')
+  }
+
   return (
-    <Card>
-      <Space className="space-between mb-1">
-        <h3 className="m-0 fw-300">List of Admins</h3>
+    <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Admin</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
 
-        <Tooltip title="Add new admin">
-          <Button
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => onOpenForm('create', {})}
-          ></Button>
-        </Tooltip>
-      </Space>
+      <Card>
+        <Space className="space-between mb-1">
+          <h3 className="m-0 fw-300">List of Admins</h3>
 
-      <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
+          <Tooltip title="Add new admin">
+            <Button
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => onOpenForm('create', {})}
+            ></Button>
+          </Tooltip>
+        </Space>
 
-      <FormAdmin
-        isShow={isFormOpen}
-        admin={admin}
-        action={formAction}
-        handleHide={() => setIsFormOpen(false)}
-      />
-    </Card>
+        <Table
+          dataSource={admins}
+          columns={columns}
+          className={'mt-1'}
+          loading={loading}
+          rowKey={`id`}
+        />
+
+        <FormAdmin
+          isShow={isFormOpen}
+          admin={admin}
+          action={formAction}
+          handleHide={() => setIsFormOpen(false)}
+          token={user?.token}
+          reloadData={initData}
+        />
+      </Card>
+      {contextHolder}
+    </>
   )
 }
 
 export default Admins
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}

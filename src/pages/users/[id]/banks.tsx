@@ -1,11 +1,5 @@
 import { Api } from '@/api/api'
-import {
-  CloseCircleOutlined,
-  DeleteOutlined,
-  DownOutlined,
-  EditOutlined,
-  SmileOutlined,
-} from '@ant-design/icons'
+import { CloseCircleOutlined, DownOutlined } from '@ant-design/icons'
 import {
   Breadcrumb,
   Button,
@@ -17,7 +11,6 @@ import {
   Row,
   Space,
   Table,
-  Tooltip,
   Typography,
 } from 'antd'
 import { getSession } from 'next-auth/react'
@@ -109,26 +102,6 @@ const Banks = ({ user }: IProps) => {
       key: 'bank',
       render: (bank: any) => bank.iban_code,
     },
-    // {
-    //   title: '',
-    //   dataIndex: '',
-    //   key: 'x',
-    //   width: '70px',
-    //   render: (data: any) => (
-    //     <Space size={`small`} className="space-end">
-    //       {/* <Tooltip title="Edit">
-    //         <Button size="small">
-    //           <EditOutlined />
-    //         </Button>
-    //       </Tooltip> */}
-    //       <Tooltip title="Delete data bank">
-    //         <Button size="small" danger>
-    //           <DeleteOutlined />
-    //         </Button>
-    //       </Tooltip>
-    //     </Space>
-    //   ),
-    // },
   ]
 
   const onSearch = (value: string) => {
