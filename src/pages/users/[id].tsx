@@ -34,6 +34,8 @@ import weekday from 'dayjs/plugin/weekday'
 import timezone from 'dayjs/plugin/timezone'
 import localeData from 'dayjs/plugin/localeData'
 import dayjs from 'dayjs'
+import type { UploadFile } from 'antd/es/upload/interface'
+import type { UploadProps } from 'antd'
 
 dayjs.extend(weekday)
 dayjs.extend(localeData)
@@ -42,6 +44,7 @@ dayjs.extend(timezone)
 dayjs.tz.setDefault('Asia/Singapore')
 
 const { Option } = Select
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 interface IProps {
   user: any
@@ -54,6 +57,9 @@ const FormUser = ({ user }: IProps) => {
   const [buttonLoading, setButtonLoading] = useState(false)
   const [dataUser, setDataUser] = useState<any>(null)
   const [countryOptions, setCountryOptions] = useState<any>(null)
+  const [fileNric, setFileNric] = useState<UploadFile[]>([])
+  const [fileNricBack, setFileNricBack] = useState<UploadFile[]>([])
+  const [fileAddressProof, setFileAddressProof] = useState<UploadFile[]>([])
 
   // const user_id = router.query.id
   const { id } = router.query
@@ -63,9 +69,59 @@ const FormUser = ({ user }: IProps) => {
 
     await Api.get(`users/${id}`, user?.token)
       .then((res: any) => {
+        const { data } = res
+
+        if (data.nric_file) {
+          let name = data.nric_file.split('/')
+          let nric_file = fileNric
+
+          nric_file = [
+            {
+              uid: Math.random().toString(),
+              name: name[name.length - 1].toString(),
+              status: 'done',
+              url: data.nric_file,
+            },
+          ]
+
+          setFileNric(nric_file)
+        }
+
+        if (data.nric_file_back) {
+          let name = data.nric_file_back.split('/')
+          let nric_file_back = fileNricBack
+
+          nric_file_back = [
+            {
+              uid: Math.random().toString(),
+              name: name[name.length - 1].toString(),
+              status: 'done',
+              url: data.nric_file_back,
+            },
+          ]
+
+          setFileNricBack(nric_file_back)
+        }
+
+        if (data.address_proof) {
+          let name = data.address_proof.split('/')
+          let address_proof = fileAddressProof
+
+          address_proof = [
+            {
+              uid: Math.random().toString(),
+              name: name[name.length - 1].toString(),
+              status: 'done',
+              url: data.address_proof,
+            },
+          ]
+
+          setFileAddressProof(address_proof)
+        }
+
         const params = {
-          ...res.data,
-          dob: res.data.dob ? dayjs(res.data.dob) : null,
+          ...data,
+          dob: data.dob ? dayjs(data.dob) : null,
         }
 
         setDataUser(params)
@@ -122,6 +178,69 @@ const FormUser = ({ user }: IProps) => {
       label: <Link href={`/users/${id}/transactions`}>Transactions</Link>,
     },
   ]
+
+  const handleUploadNric: UploadProps['onChange'] = ({
+    file,
+    fileList: newFileList,
+  }) => {
+    newFileList = newFileList.map((file) => {
+      if (file.response) {
+        // Component will show file.url as link
+        const { data } = file.response
+
+        file.uid = Math.random().toString()
+        file.name = Math.random().toString()
+        file.url = data.file_path
+
+        form.setFieldValue('nric_file', data.file_path)
+      }
+      return file
+    })
+
+    setFileNric(newFileList)
+  }
+
+  const handleUploadNricBack: UploadProps['onChange'] = ({
+    file,
+    fileList: newFileList,
+  }) => {
+    newFileList = newFileList.map((file) => {
+      if (file.response) {
+        // Component will show file.url as link
+        const { data } = file.response
+
+        file.uid = Math.random().toString()
+        file.name = Math.random().toString()
+        file.url = data.file_path
+
+        form.setFieldValue('nric_file_back', data.file_path)
+      }
+      return file
+    })
+
+    setFileNricBack(newFileList)
+  }
+
+  const handleUploadAddressProof: UploadProps['onChange'] = ({
+    file,
+    fileList: newFileList,
+  }) => {
+    newFileList = newFileList.map((file) => {
+      if (file.response) {
+        // Component will show file.url as link
+        const { data } = file.response
+
+        file.uid = Math.random().toString()
+        file.name = Math.random().toString()
+        file.url = data.file_path
+
+        form.setFieldValue('address_proof', data.file_path)
+      }
+      return file
+    })
+
+    setFileAddressProof(newFileList)
+  }
 
   return (
     <>
@@ -394,9 +513,18 @@ const FormUser = ({ user }: IProps) => {
                     <Col span={8}>
                       <Form.Item
                         label="ID Card/Passport (front)"
-                        valuePropName="id_card_front"
+                        name={`nric_file`}
                       >
-                        <Upload listType="picture-card" maxCount={1}>
+                        <Upload
+                          action={`${API_URL}/users/upload/nric`}
+                          headers={{
+                            Authorization: `Bearer ${user?.token}`,
+                          }}
+                          listType="picture-card"
+                          maxCount={1}
+                          fileList={fileNric}
+                          onChange={handleUploadNric}
+                        >
                           <div>
                             <PlusOutlined />
                             <div style={{ marginTop: 8 }}>Upload</div>
@@ -408,8 +536,18 @@ const FormUser = ({ user }: IProps) => {
                       <Form.Item
                         label="ID Card/Passport (back)"
                         valuePropName="id_card_back"
+                        name={`nric_file_back`}
                       >
-                        <Upload listType="picture-card" maxCount={1}>
+                        <Upload
+                          action={`${API_URL}/users/upload/nric_back`}
+                          headers={{
+                            Authorization: `Bearer ${user?.token}`,
+                          }}
+                          listType="picture-card"
+                          maxCount={1}
+                          fileList={fileNricBack}
+                          onChange={handleUploadNricBack}
+                        >
                           <div>
                             <PlusOutlined />
                             <div style={{ marginTop: 8 }}>Upload</div>
@@ -421,8 +559,18 @@ const FormUser = ({ user }: IProps) => {
                       <Form.Item
                         label="Proof of address"
                         valuePropName="proof_address"
+                        name={`address_proof`}
                       >
-                        <Upload listType="picture-card" maxCount={1}>
+                        <Upload
+                          action={`${API_URL}/users/upload/address_proof`}
+                          headers={{
+                            Authorization: `Bearer ${user?.token}`,
+                          }}
+                          listType="picture-card"
+                          maxCount={1}
+                          fileList={fileAddressProof}
+                          onChange={handleUploadAddressProof}
+                        >
                           <div>
                             <PlusOutlined />
                             <div style={{ marginTop: 8 }}>Upload</div>
