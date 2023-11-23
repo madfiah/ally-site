@@ -1,4 +1,4 @@
-import { Col, Divider, Row } from 'antd'
+import { Breadcrumb, Col, Divider, Row } from 'antd'
 import React from 'react'
 import { getSession } from 'next-auth/react'
 import DataNewUsers from './dashboard/dataNewUsers'
@@ -19,6 +19,11 @@ interface IProps {
 const Dashboard = ({ token }: IProps) => {
   return (
     <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Dashboard</Breadcrumb.Item>
+        <Breadcrumb.Item>Report</Breadcrumb.Item>
+      </Breadcrumb>
+
       <Row gutter={[16, 16]}>
         <Col className="gutter-row" xs={24} md={8} xl={6}>
           <CardReport token={token} getData="user" title="Users" />

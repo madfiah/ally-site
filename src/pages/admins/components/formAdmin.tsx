@@ -1,4 +1,5 @@
-import { Button, Form, Input, Modal, Select, Space } from 'antd'
+import { Api } from '@/api/api'
+import { Button, Form, Input, Modal, notification, Select, Space } from 'antd'
 
 import { useEffect, useState } from 'react'
 
@@ -7,15 +8,23 @@ interface Props {
   handleHide: any
   action: string
   admin?: any
+  token: string
+  reloadData: any
 }
 
-const FormAdmin = ({ isShow, handleHide, action, admin }: Props) => {
+const FormAdmin = ({
+  isShow,
+  handleHide,
+  action,
+  admin,
+  token,
+  reloadData,
+}: Props) => {
   const [form] = Form.useForm()
-  const [data, setData] = useState({})
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!isShow) {
-      setData({})
       form.resetFields()
     } else {
       form.setFieldsValue(admin)
@@ -23,7 +32,23 @@ const FormAdmin = ({ isShow, handleHide, action, admin }: Props) => {
   }, [form, isShow, admin])
 
   const onFinish = (values: any) => {
-    console.log('Success:', values)
+    setLoading(true)
+    const url =
+      action === 'create' ? `admins` : `admins/${admin?.id}?_method=put`
+
+    Api.post(url, token, null, values)
+      .then((res: any) => {
+        notification.success({ message: res.message })
+        reloadData()
+
+        setTimeout(() => {
+          handleHide()
+        }, 500)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoading(false))
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -32,7 +57,7 @@ const FormAdmin = ({ isShow, handleHide, action, admin }: Props) => {
 
   return (
     <Modal
-      title={action === 'create' ? 'Create new admin' : 'Edit data admin'}
+      title={action === 'create' ? `Create new admin` : `Edit data admin`}
       open={isShow}
       onCancel={handleHide}
       footer={false}
@@ -61,15 +86,25 @@ const FormAdmin = ({ isShow, handleHide, action, admin }: Props) => {
           name="email"
           rules={[{ required: true, message: 'Please input project email!' }]}
         >
-          <Input placeholder="Enter the email" />
+          <Input placeholder="Enter the email" autoComplete={`false`} />
         </Form.Item>
 
         <Form.Item
           label="Password"
           name="password"
-          rules={[{ required: true, message: 'Please input password!' }]}
+          extra={
+            action === 'edit'
+              ? "Leave blank if you don't want to change the password"
+              : null
+          }
+          rules={[
+            {
+              required: action === 'create',
+              message: 'Please input password!',
+            },
+          ]}
         >
-          <Input.Password />
+          <Input.Password autoComplete={`false`} />
         </Form.Item>
 
         <Form.Item name="role" label="Role" rules={[{ required: true }]}>
@@ -81,7 +116,7 @@ const FormAdmin = ({ isShow, handleHide, action, admin }: Props) => {
 
         <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
           <Space>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
             <Button onClick={() => form.resetFields()}>Reset</Button>
