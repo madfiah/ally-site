@@ -1,7 +1,17 @@
 import { Api } from '@/api/api'
 import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
 import { Nunito } from '@next/font/google'
-import { Button, Card, Col, Input, Row, Space, Table, Tooltip } from 'antd'
+import {
+  Breadcrumb,
+  Button,
+  Card,
+  Col,
+  Input,
+  Row,
+  Space,
+  Table,
+  Tooltip,
+} from 'antd'
 // import Search from 'antd/es/input/Search'
 import { getSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
@@ -96,26 +106,37 @@ const Banks = ({ user }: IProps) => {
   }
 
   return (
-    <Card>
-      <Row>
-        <Col span={24}>
-          <Space className="space-between mb-1">
-            <h3 className="m-0 fw-300">
-              <strong className={nunito.className}>List of Get Funded</strong>
-            </h3>
-            <Search allowClear onSearch={onSearch} placeholder="Find by name" />
-          </Space>
+    <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Get funded</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
 
-          <Table
-            dataSource={filteredGetFundeds}
-            columns={columns}
-            className={'mt-1'}
-            loading={loading}
-            scroll={{ x: 1300 }}
-          />
-        </Col>
-      </Row>
-    </Card>
+      <Card>
+        <Row>
+          <Col span={24}>
+            <Space className="space-between mb-1">
+              <h3 className="m-0 fw-300">
+                <strong className={nunito.className}>List of Get Funded</strong>
+              </h3>
+              <Search
+                allowClear
+                onSearch={onSearch}
+                placeholder="Find by name"
+              />
+            </Space>
+
+            <Table
+              dataSource={filteredGetFundeds}
+              columns={columns}
+              className={'mt-1'}
+              loading={loading}
+              scroll={{ x: 1300 }}
+            />
+          </Col>
+        </Row>
+      </Card>
+    </>
   )
 }
 
