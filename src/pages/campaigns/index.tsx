@@ -10,6 +10,7 @@ import {
   CloseOutlined,
   ExclamationCircleOutlined,
   SearchOutlined,
+  FilterOutlined,
 } from '@ant-design/icons'
 import { Nunito } from '@next/font/google'
 import {
@@ -60,7 +61,7 @@ interface DataType {
   expiry_datetime: Date
   currenct_invest: number
   total_invest_amount: number
-  is_enable: boolean
+  is_enable: string
 }
 
 type DataIndex = keyof DataType
@@ -228,9 +229,13 @@ const Index = ({ user }: IProps) => {
           <>
             {['release_datetime', 'expiry_datetime'].includes(dataIndex) ? (
               <DatePicker
-                placeholder={dataIndex}
+                placeholder={
+                  dataIndex === 'release_datetime'
+                    ? 'Select release date'
+                    : 'Select expiry date'
+                }
                 format={'YYYY-MM-DD'}
-                style={{ display: 'block' }}
+                style={{ display: 'block', marginBottom: '8px' }}
                 onChange={(e: any) => {
                   if (e) {
                     const value = moment(e.$d).format('YYYY-MM-DD')
@@ -241,18 +246,36 @@ const Index = ({ user }: IProps) => {
                 }}
               />
             ) : (
-              <Input
-                ref={searchInput}
-                placeholder={`Search ${dataIndex}`}
-                value={selectedKeys[0]}
-                onChange={(e) =>
-                  setSelectedKeys(e.target.value ? [e.target.value] : [])
-                }
-                onPressEnter={() =>
-                  handleSearch(selectedKeys as string[], confirm, dataIndex)
-                }
-                style={{ marginBottom: 8, display: 'block' }}
-              />
+              <>
+                {dataIndex === 'is_enable' ? (
+                  <Select
+                    allowClear
+                    placeholder="Select status"
+                    style={{ marginBottom: 8, display: 'block' }}
+                    value={selectedKeys[0]}
+                    options={[
+                      { value: 'enable', label: 'Enable' },
+                      { value: 'disable', label: 'Disable' },
+                    ]}
+                    onChange={(val) =>
+                      setSelectedKeys(val !== undefined ? [val] : [])
+                    }
+                  />
+                ) : (
+                  <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={(e) =>
+                      setSelectedKeys(e.target.value ? [e.target.value] : [])
+                    }
+                    onPressEnter={() =>
+                      handleSearch(selectedKeys as string[], confirm, dataIndex)
+                    }
+                    style={{ marginBottom: 8, display: 'block' }}
+                  />
+                )}
+              </>
             )}
           </>
         )}
@@ -299,7 +322,13 @@ const Index = ({ user }: IProps) => {
       </div>
     ),
     filterIcon: (filtered: boolean) => (
-      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+      <>
+        {['type', 'is_enable'].includes(dataIndex) ? (
+          <FilterOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        ) : (
+          <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        )}
+      </>
     ),
     onFilter: (value, record) => {
       // return record[dataIndex]
@@ -378,7 +407,7 @@ const Index = ({ user }: IProps) => {
       title: 'Total funding ($)',
       dataIndex: 'total_invest_amount',
       key: 'total_invest_amount',
-      sorter: (a, b) => a.total_invest_amount - b.total_invest_amount,
+      sorter: true,
       render: (total_invest_amount: any) => (
         <div className="text-end">
           {total_invest_amount
@@ -391,6 +420,7 @@ const Index = ({ user }: IProps) => {
       title: 'Enable',
       dataIndex: 'is_enable',
       key: 'is_enable',
+      ...getColumnSearchProps('is_enable'),
       render: (is_enable: boolean) => (
         <>
           {is_enable ? (

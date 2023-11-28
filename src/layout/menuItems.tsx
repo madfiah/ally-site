@@ -13,6 +13,7 @@ import {
   ApartmentOutlined,
   RadiusSettingOutlined,
   DiffOutlined,
+  FileDoneOutlined,
 } from '@ant-design/icons'
 
 type MenuItem = Required<MenuProps>['items'][number]
@@ -42,11 +43,16 @@ export const menuItems: MenuItem[] = [
     'campaigns',
     <BarsOutlined />
   ),
-  getItem(<Link href="/users">Users</Link>, 'users', <UserOutlined />),
   getItem(
     <Link href="/get-fundeds">Get Fundeds</Link>,
     'get-fundeds',
     <DiffOutlined />
+  ),
+  getItem(<Link href="/users">Users</Link>, 'users', <UserOutlined />),
+  getItem(
+    <Link href="/investments">Investments</Link>,
+    'investments',
+    <FileDoneOutlined />
   ),
   getItem(
     <Link href="/withdrawals">Withdrawals</Link>,
