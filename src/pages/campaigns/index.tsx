@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons'
 import { Nunito } from '@next/font/google'
 import {
+  Breadcrumb,
   Button,
   DatePicker,
   Dropdown,
@@ -331,11 +332,6 @@ const Index = ({ user }: IProps) => {
       </>
     ),
     onFilter: (value, record) => {
-      // return record[dataIndex]
-      //   .toString()
-      //   .toLowerCase()
-      //   .includes((value as string).toLowerCase())
-
       return true
     },
     onFilterDropdownOpenChange: (visible) => {
@@ -513,19 +509,13 @@ const Index = ({ user }: IProps) => {
     },
   ]
 
-  const options = [
-    {
-      value: 'acronim',
-      label: 'Acronim',
-    },
-    {
-      value: 'name',
-      label: 'Name',
-    },
-  ]
-
   return (
     <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Campaign</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
+
       <div className="kb-card card-shadow">
         <div className="card-title">
           <Space className="space-between">
@@ -538,66 +528,6 @@ const Index = ({ user }: IProps) => {
               </Tooltip>
             </Space>
           </Space>
-          {/* <div className="mt-1">
-            <Space>
-              <Space.Compact>
-                <Select
-                  style={{ width: '105px' }}
-                  defaultValue={filter.field}
-                  options={options}
-                  onChange={(value) =>
-                    setFilter({
-                      ...filter,
-                      field: value,
-                    })
-                  }
-                />
-                <Search
-                  allowClear
-                  placeholder={`${
-                    filter.field === 'acronim'
-                      ? 'Search by acronim'
-                      : 'Search by name'
-                  }`}
-                  onSearch={onSearch}
-                  style={{ width: 250 }}
-                />
-              </Space.Compact>
-              <Select
-                allowClear
-                placeholder="Select type"
-                style={{ width: 150 }}
-                options={[
-                  { value: 'SME', label: 'SME' },
-                  { value: 'Donation', label: 'Donation' },
-                ]}
-                onChange={(vl) =>
-                  setFilter({
-                    ...filter,
-                    type: vl,
-                  })
-                }
-              />
-              <DatePicker
-                placeholder="Release date"
-                format={'YYYY-MM-DD'}
-                style={{ width: '100%' }}
-                onChange={(e: any) => {
-                  if (e) {
-                    setFilter({
-                      ...filter,
-                      release_date: moment(e.$d).format('YYYY-MM-DD'),
-                    })
-                  } else {
-                    setFilter({
-                      ...filter,
-                      release_date: '',
-                    })
-                  }
-                }}
-              />
-            </Space>
-          </div> */}
         </div>
         <div className="card-body">
           <Table

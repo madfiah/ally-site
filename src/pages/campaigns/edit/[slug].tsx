@@ -1,5 +1,6 @@
 import {
   CopyOutlined,
+  DownOutlined,
   LoadingOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -22,6 +23,8 @@ import {
   Upload,
   notification,
   Tooltip,
+  Breadcrumb,
+  Dropdown,
 } from 'antd'
 import CampaignGallery from '../components/galleries'
 import PdfCampaign from '../components/pdf'
@@ -38,6 +41,9 @@ import weekday from 'dayjs/plugin/weekday'
 import timezone from 'dayjs/plugin/timezone'
 import localeData from 'dayjs/plugin/localeData'
 import TeamInspector from '../components/teamInspector'
+import Link from 'next/link'
+
+import type { MenuProps } from 'antd'
 
 dayjs.extend(weekday)
 dayjs.extend(localeData)
@@ -766,8 +772,51 @@ const NewCampaign = ({ user }: IProps) => {
     )
   }
 
+  const items: MenuProps['items'] = [
+    {
+      key: '0',
+      label: <Link href={`/campaigns/contract/${slug}`}>Contract</Link>,
+    },
+    {
+      key: '1',
+      label: (
+        <Link href={`/campaigns/investment-report/${slug}`}>
+          Investment Report
+        </Link>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <Link href={`/campaigns/payout-report/${slug}`}>Payout Report</Link>
+      ),
+    },
+  ]
+
   return (
     <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Campaign</Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link href={`/campaigns`}>List</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Dropdown
+            menu={{
+              items,
+            }}
+            placement="bottomRight"
+          >
+            <a onClick={(e) => e.preventDefault()}>
+              <Space>
+                Edit
+                <DownOutlined />
+              </Space>
+            </a>
+          </Dropdown>
+        </Breadcrumb.Item>
+      </Breadcrumb>
+
       <div className="kb-card card-shadow">
         <div className="card-title">
           <Space className="space-between">

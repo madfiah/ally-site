@@ -3,12 +3,15 @@ import { currency } from '@/utils/helpers'
 import {
   DeleteOutlined,
   DownloadOutlined,
+  DownOutlined,
   ExclamationCircleOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Card,
+  Dropdown,
   InputNumber,
   message,
   Modal,
@@ -22,6 +25,9 @@ import { useEffect, useState } from 'react'
 
 import * as FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
+
+import type { MenuProps } from 'antd'
+import Link from 'next/link'
 
 const dataSource = [
   {
@@ -185,28 +191,70 @@ const InvestmentReport = ({ user }: IProps) => {
       ),
     },
   ]
+
+  const items: MenuProps['items'] = [
+    {
+      key: '0',
+      label: <Link href={`/campaigns/edit/${slug}`}>Edit</Link>,
+    },
+    {
+      key: '1',
+      label: <Link href={`/campaigns/contract/${slug}`}>Contract</Link>,
+    },
+    {
+      key: '2',
+      label: (
+        <Link href={`/campaigns/payout-report/${slug}`}>Payout Report</Link>
+      ),
+    },
+  ]
+
   return (
-    <Card
-      title={campaignName}
-      extra={
-        <Button
-          size="small"
-          icon={<DownloadOutlined />}
-          loading={loadingExport}
-          onClick={exportToExcel}
-        >
-          Export to Excel
-        </Button>
-      }
-    >
-      <Table
-        dataSource={report}
-        columns={columns}
-        scroll={{ x: 800 }}
-        loading={loading}
-      />
-      {contextHolder}
-    </Card>
+    <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Campaign</Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link href={`/campaigns`}>List</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Dropdown
+            menu={{
+              items,
+            }}
+            placement="bottomRight"
+          >
+            <a onClick={(e) => e.preventDefault()}>
+              <Space>
+                Investment report
+                <DownOutlined />
+              </Space>
+            </a>
+          </Dropdown>
+        </Breadcrumb.Item>
+      </Breadcrumb>
+
+      <Card
+        title={`Investment Report - ${campaignName}`}
+        extra={
+          <Button
+            size="small"
+            icon={<DownloadOutlined />}
+            loading={loadingExport}
+            onClick={exportToExcel}
+          >
+            Export to Excel
+          </Button>
+        }
+      >
+        <Table
+          dataSource={report}
+          columns={columns}
+          scroll={{ x: 800 }}
+          loading={loading}
+        />
+        {contextHolder}
+      </Card>
+    </>
   )
 }
 
