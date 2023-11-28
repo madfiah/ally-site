@@ -43,7 +43,9 @@ const DataNewUsers = ({ token, title }: IProps) => {
         setUser(res.data)
       })
       .catch((err) => {
-        notification.error(err.message)
+        if (err) {
+          notification.error(err.data.message)
+        }
       })
       .finally(() => setLoading(false))
   }

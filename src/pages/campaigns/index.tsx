@@ -9,6 +9,7 @@ import {
   CheckOutlined,
   CloseOutlined,
   ExclamationCircleOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import { Nunito } from '@next/font/google'
 import {
@@ -32,10 +33,13 @@ import moment from 'moment'
 import { getSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import DuplicateCampaignPopup from './components/DuplicateCampaign'
 import ExpandedCampaign from './components/ExpandedCampaign'
 import NewCampaignPopup from './components/NewCampaign'
+import type { ColumnType, ColumnsType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
+import type { InputRef } from 'antd'
 
 const { Search } = Input
 const { Text } = Typography
@@ -46,6 +50,21 @@ interface IProps {
   user: any
 }
 
+interface DataType {
+  key: string
+  id: string
+  acronim: string
+  name: string
+  type: string
+  release_datetime: Date
+  expiry_datetime: Date
+  currenct_invest: number
+  total_invest_amount: number
+  is_enable: boolean
+}
+
+type DataIndex = keyof DataType
+
 const Index = ({ user }: IProps) => {
   const router = useRouter()
   const [modal, contextHolder] = Modal.useModal()
@@ -53,15 +72,24 @@ const Index = ({ user }: IProps) => {
     data: [],
   })
   const [filter, setFilter] = useState({
-    search: '',
-    type: null,
-    release_date: '',
-    field: 'acronim',
+    acronim: '',
+    name: '',
+    type: '',
+    release_datetime: '',
+    expiry_datetime: '',
+    is_enable: '',
+    currenct_invest: '',
+    total_invest_amount: '',
+    per_page: 10,
+    page: 1,
   })
   const [loading, setLoading] = useState(false)
   const [newCampaignPopup, setNewCampaignPopup] = useState(false)
   const [duplicateCampaignPopup, setDuplicateCampaignPopup] = useState(false)
   const [campaignToDuplicate, setCampaignToDuplicate] = useState<any>(null)
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+  const searchInput = useRef<InputRef>(null)
 
   const initCampaigns = async (params: any) => {
     setLoading(true)
@@ -95,13 +123,31 @@ const Index = ({ user }: IProps) => {
   const onSearch = (value: string) => {
     setFilter({
       ...filter,
-      search: value,
+      // search: value,
     })
   }
 
-  const handleTableChange = (pagination: any) => {
-    initCampaigns({
-      ...filter,
+  const handleTableChange = (pagination: any, filters: any, sorter: any) => {
+    let current_filter = { ...filter }
+
+    if (sorter) {
+      if (sorter.field === 'total_invest_amount') {
+        current_filter = {
+          ...filter,
+          [sorter.field]: sorter.order,
+          currenct_invest: '',
+        }
+      } else {
+        current_filter = {
+          ...filter,
+          [sorter.field]: sorter.order,
+          total_invest_amount: '',
+        }
+      }
+    }
+
+    setFilter({
+      ...current_filter,
       per_page: pagination.pageSize,
       page: pagination.current,
     })
@@ -134,21 +180,163 @@ const Index = ({ user }: IProps) => {
     })
   }
 
-  const columns = [
+  // filter percolomn
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex
+  ) => {
+    confirm()
+    setSearchText(selectedKeys[0])
+    setSearchedColumn(dataIndex)
+
+    setFilter({
+      ...filter,
+      [dataIndex]: selectedKeys[0],
+    })
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+    setSearchText('')
+  }
+
+  const getColumnSearchProps = (
+    dataIndex: DataIndex
+  ): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        {dataIndex === 'type' ? (
+          <Select
+            allowClear
+            placeholder="Select type"
+            style={{ marginBottom: 8, display: 'block' }}
+            value={selectedKeys[0]}
+            options={[
+              { value: 'SME', label: 'SME' },
+              { value: 'Donation', label: 'Donation' },
+            ]}
+            onChange={(val) => setSelectedKeys(val ? [val] : [])}
+          />
+        ) : (
+          <>
+            {['release_datetime', 'expiry_datetime'].includes(dataIndex) ? (
+              <DatePicker
+                placeholder={dataIndex}
+                format={'YYYY-MM-DD'}
+                style={{ display: 'block' }}
+                onChange={(e: any) => {
+                  if (e) {
+                    const value = moment(e.$d).format('YYYY-MM-DD')
+                    setSelectedKeys([value])
+                  } else {
+                    setSelectedKeys([])
+                  }
+                }}
+              />
+            ) : (
+              <Input
+                ref={searchInput}
+                placeholder={`Search ${dataIndex}`}
+                value={selectedKeys[0]}
+                onChange={(e) =>
+                  setSelectedKeys(e.target.value ? [e.target.value] : [])
+                }
+                onPressEnter={() =>
+                  handleSearch(selectedKeys as string[], confirm, dataIndex)
+                }
+                style={{ marginBottom: 8, display: 'block' }}
+              />
+            )}
+          </>
+        )}
+        <Space>
+          <Button
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false })
+              setSearchText((selectedKeys as string[])[0])
+              setSearchedColumn(dataIndex)
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) => {
+      // return record[dataIndex]
+      //   .toString()
+      //   .toLowerCase()
+      //   .includes((value as string).toLowerCase())
+
+      return true
+    },
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    },
+    render: (text) => text,
+  })
+
+  // end custom filter
+
+  const columns: ColumnsType<DataType> = [
     {
       title: 'Acronim',
       dataIndex: 'acronim',
       key: 'acronim',
+      ...getColumnSearchProps('acronim'),
     },
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      ...getColumnSearchProps('name'),
     },
     {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
+      ...getColumnSearchProps('type'),
       render: (type: string) => (
         <>
           {type === 'sme' ? (
@@ -167,16 +355,19 @@ const Index = ({ user }: IProps) => {
       title: 'Release date',
       dataIndex: 'release_datetime',
       key: 'release_datetime',
+      ...getColumnSearchProps('release_datetime'),
     },
     {
       title: 'Closing date',
       dataIndex: 'expiry_datetime',
       key: 'expiry_datetime',
+      ...getColumnSearchProps('expiry_datetime'),
     },
     {
       title: 'Current funding ($)',
       dataIndex: 'currenct_invest',
       key: 'currenct_invest',
+      sorter: (a, b) => a.currenct_invest - b.currenct_invest,
       render: (currenct_invest: any) => (
         <div className="text-end">
           {currenct_invest ? currency(parseFloat(currenct_invest)) : '$0'}
@@ -187,6 +378,7 @@ const Index = ({ user }: IProps) => {
       title: 'Total funding ($)',
       dataIndex: 'total_invest_amount',
       key: 'total_invest_amount',
+      sorter: (a, b) => a.total_invest_amount - b.total_invest_amount,
       render: (total_invest_amount: any) => (
         <div className="text-end">
           {total_invest_amount
@@ -200,7 +392,17 @@ const Index = ({ user }: IProps) => {
       dataIndex: 'is_enable',
       key: 'is_enable',
       render: (is_enable: boolean) => (
-        <>{is_enable ? <CheckOutlined /> : <CloseOutlined />}</>
+        <>
+          {is_enable ? (
+            <Tag color={'blue'}>
+              <CheckOutlined />
+            </Tag>
+          ) : (
+            <Tag color={'orange'}>
+              <CloseOutlined />
+            </Tag>
+          )}
+        </>
       ),
     },
     {
@@ -306,7 +508,7 @@ const Index = ({ user }: IProps) => {
               </Tooltip>
             </Space>
           </Space>
-          <div className="mt-1">
+          {/* <div className="mt-1">
             <Space>
               <Space.Compact>
                 <Select
@@ -365,7 +567,7 @@ const Index = ({ user }: IProps) => {
                 }}
               />
             </Space>
-          </div>
+          </div> */}
         </div>
         <div className="card-body">
           <Table
