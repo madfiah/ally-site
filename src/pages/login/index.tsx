@@ -17,6 +17,7 @@ import ForgotPassword from './forgotPassword'
 import { signIn } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import Router from 'next/router'
+import { LoginOutlined, ReloadOutlined, RestOutlined } from '@ant-design/icons'
 
 const nunito = Nunito({ subsets: ['latin'] })
 
@@ -126,7 +127,7 @@ const Login = ({ without_layout }: Props) => {
                   <Input.Password />
                 </Form.Item>
 
-                <Form.Item>
+                {/* <Form.Item>
                   <Button
                     type="link"
                     onClick={() => setIsModalOpen(!isModalOpen)}
@@ -134,19 +135,30 @@ const Login = ({ without_layout }: Props) => {
                   >
                     Forgot password?
                   </Button>
-                </Form.Item>
+                </Form.Item> */}
 
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" loading={loading}>
-                    Submit
-                  </Button>
+                  <Space>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={loading}
+                      icon={<LoginOutlined />}
+                    >
+                      Login
+                    </Button>
+
+                    <Button htmlType="reset" icon={<ReloadOutlined />}>
+                      Reset
+                    </Button>
+                  </Space>
                 </Form.Item>
               </Form>
             </Space>
           </Col>
         </Row>
 
-        <Modal
+        {/* <Modal
           title="Forgot Password"
           open={isModalOpen}
           onOk={handleOk}
@@ -154,7 +166,7 @@ const Login = ({ without_layout }: Props) => {
           footer={null}
         >
           <ForgotPassword handleClose={handleCancel} />
-        </Modal>
+        </Modal> */}
       </main>
     </>
   )
