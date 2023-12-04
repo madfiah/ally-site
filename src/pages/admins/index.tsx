@@ -13,6 +13,7 @@ import {
   Button,
   Card,
   Input,
+  message,
   Modal,
   notification,
   Space,
@@ -187,7 +188,7 @@ const Admins = ({ user }: IProps) => {
           </Tooltip>
           {/* reset password button just active for super admin */}
           <Tooltip title="Reset password admin">
-            <Button size="small">
+            <Button size="small" onClick={() => handleResetPassword(data)}>
               <RetweetOutlined />
             </Button>
           </Tooltip>
@@ -245,6 +246,19 @@ const Admins = ({ user }: IProps) => {
   const handleReset = (clearFilters: () => void) => {
     clearFilters()
     setSearchText('')
+  }
+
+  const handleResetPassword = (data: any) => {
+    setLoading(true)
+
+    Api.post(`admins/${data?.id}`, user?.token)
+      .then((res: any) => {
+        notification.success({ message: res.message })
+      })
+      .catch((err) => {
+        message.error(err.data.message)
+      })
+      .finally(() => setLoading(false))
   }
 
   return (
