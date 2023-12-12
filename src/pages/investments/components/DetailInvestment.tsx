@@ -168,7 +168,7 @@ const DetailInvestment = ({ investment, token, reloadData }: IProps) => {
               <Link target={`_blank`} href={investment?.bank_proof}>
                 <img
                   src={investment?.bank_proof}
-                  style={{ maxHeight: '450px' }}
+                  style={{ maxHeight: '450px', maxWidth: '100%' }}
                 />
               </Link>
             </div>

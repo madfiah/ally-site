@@ -64,7 +64,12 @@ const Detail = ({ user }: IProps) => {
             {
               label: `Payouts`,
               key: '2',
-              children: <InvestmentPayouts />,
+              children: (
+                <InvestmentPayouts
+                  investment={dataInvestment}
+                  token={user?.token}
+                />
+              ),
             },
           ]}
         />
