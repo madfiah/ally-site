@@ -47,6 +47,7 @@ const Detail = ({ user }: IProps) => {
               <DetailInvestment
                 investment={dataInvestment}
                 token={user?.token}
+                reloadData={init}
               />
             ),
           },
