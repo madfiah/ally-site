@@ -31,7 +31,6 @@ import { useEffect, useRef, useState } from 'react'
 import type { InputRef } from 'antd'
 import type { ColumnType, ColumnsType } from 'antd/es/table'
 import type { FilterConfirmProps } from 'antd/es/table/interface'
-import FilterField from './components/FilterField'
 import Link from 'next/link'
 
 interface DataType {
