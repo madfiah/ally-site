@@ -18,22 +18,38 @@ import {
   Typography,
 } from 'antd'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface IProps {
   investment: any
   token: string
+  reloadData: any
 }
 
-const DetailInvestment = ({ investment, token }: IProps) => {
+const DetailInvestment = ({ investment, token, reloadData }: IProps) => {
   const [submitLoading, setSubmitLoading] = useState(false)
+  const [form] = Form.useForm()
+
+  useEffect(() => {
+    if (!investment) {
+      form.resetFields()
+    } else {
+      form.setFieldsValue(investment)
+    }
+  }, [form, investment])
 
   const onSubmit = (values: any) => {
     setSubmitLoading(true)
 
-    Api.post(`investment/${investment?.id}`, token, null, values)
+    // console.log(values)
+
+    Api.post(`investments/${investment?.id}?_method=put`, token, null, values)
       .then((res: any) => {
         notification.success({ message: 'success to update payment data' })
+
+        setTimeout(() => {
+          reloadData()
+        }, 350)
       })
       .catch((err) => {
         message.error({
@@ -88,12 +104,14 @@ const DetailInvestment = ({ investment, token }: IProps) => {
 
       <Row gutter={25} justify="center" align={'middle'}>
         <Col span={12}>
-          <Form layout={'vertical'}>
-            <Form.Item label="Payment Type">
-              <Select
-                placeholder="Please select type"
-                value={investment?.payment_method}
-              >
+          <Form
+            form={form}
+            autoComplete={'off'}
+            onFinish={onSubmit}
+            layout={'vertical'}
+          >
+            <Form.Item name={`payment_method`} label="Payment Type">
+              <Select placeholder="Please select type">
                 <Select.Option value="bank-transfer">
                   Bank Transfer
                 </Select.Option>
@@ -106,42 +124,38 @@ const DetailInvestment = ({ investment, token }: IProps) => {
                 </Select.Option>
               </Select>
             </Form.Item>
-            <Form.Item label="Bank Name">
+            <Form.Item name={`bank_name`} label="Bank Name">
               <Input
                 placeholder="Bank name"
-                value={investment?.bank_name}
                 disabled={investment?.payment_method !== 'bank-transfer'}
               />
             </Form.Item>
-            <Form.Item label="Account Name">
+            <Form.Item name={`bank_account`} label="Account Name">
               <Input
                 placeholder="Account name"
-                value={investment?.bank_account}
                 disabled={investment?.payment_method !== 'bank-transfer'}
               />
             </Form.Item>
-            <Form.Item label="Account Number">
+            <Form.Item name={`bank_number`} label="Account Number">
               <Input
                 placeholder="Account number"
-                value={investment?.bank_number}
                 disabled={investment?.payment_method !== 'bank-transfer'}
               />
             </Form.Item>
-            <Form.Item label="Status Payment">
-              <Select
-                placeholder="Please select status payment"
-                value={investment?.is_paid.toString()}
-              >
-                <Select.Option value="1">Paid</Select.Option>
-                <Select.Option value="2">Pending Approval</Select.Option>
-                <Select.Option value="0">Unpaid</Select.Option>
+            <Form.Item name={`is_paid`} label="Status Payment">
+              <Select placeholder="Please select status payment">
+                <Select.Option value={1}>Paid</Select.Option>
+                <Select.Option value={2}>Pending Approval</Select.Option>
+                <Select.Option value={0}>Unpaid</Select.Option>
               </Select>
             </Form.Item>
             <Form.Item>
               <Button
+                htmlType="submit"
                 type="primary"
                 icon={<SendOutlined />}
                 disabled={investment?.is_paid === 1}
+                loading={submitLoading}
               >
                 Update Payment Status
               </Button>
