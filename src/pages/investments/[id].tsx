@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Api } from '@/api/api'
 import { getSession } from 'next-auth/react'
-import { Card, message, Tabs } from 'antd'
+import { Breadcrumb, Card, message, Tabs } from 'antd'
 import type { TabsProps } from 'antd'
 import DetailInvestment from './components/DetailInvestment'
 import InvestmentPayouts from './components/InvestmentPayouts'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 interface IProps {
   user: any
@@ -36,29 +37,39 @@ const Detail = ({ user }: IProps) => {
   }, [])
 
   return (
-    <Card>
-      <Tabs
-        tabPosition={'right'}
-        items={[
-          {
-            label: `Detail`,
-            key: '1',
-            children: (
-              <DetailInvestment
-                investment={dataInvestment}
-                token={user?.token}
-                reloadData={init}
-              />
-            ),
-          },
-          {
-            label: `Payouts`,
-            key: '2',
-            children: <InvestmentPayouts />,
-          },
-        ]}
-      />
-    </Card>
+    <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Investment</Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link href={`/investments`}>List</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>Detail</Breadcrumb.Item>
+      </Breadcrumb>
+
+      <Card>
+        <Tabs
+          tabPosition={'right'}
+          items={[
+            {
+              label: `Detail`,
+              key: '1',
+              children: (
+                <DetailInvestment
+                  investment={dataInvestment}
+                  token={user?.token}
+                  reloadData={init}
+                />
+              ),
+            },
+            {
+              label: `Payouts`,
+              key: '2',
+              children: <InvestmentPayouts />,
+            },
+          ]}
+        />
+      </Card>
+    </>
   )
 }
 
