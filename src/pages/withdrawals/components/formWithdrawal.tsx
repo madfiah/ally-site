@@ -1,17 +1,39 @@
-import { Button, Form, Input, Modal, Select, Space, Upload } from 'antd'
+import {
+  Button,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Modal,
+  notification,
+  Select,
+  Space,
+  Upload,
+} from 'antd'
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import type { UploadFile } from 'antd/es/upload/interface'
+import { Api } from '@/api/api'
+import type { UploadProps } from 'antd'
 
 const fileList: UploadFile[] = []
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 interface Props {
   isShow: boolean
   handleHide: any
+  token: string
+  reinitData: any
 }
 
-const FormWithdrawal = ({ isShow, handleHide }: Props) => {
+const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
   const [form] = Form.useForm()
+  const [proof, setProof] = useState<UploadFile[]>([])
+  const [userOptions, setUserOptions] = useState<any>(null)
+  const [userBankOptions, setUserBankOptions] = useState<any>(null)
+  const [onLoadBank, setOnLoadBank] = useState(false)
+  const [submitLoading, setSubmitLoading] = useState(false)
 
   useEffect(() => {
     if (!isShow) {
@@ -19,8 +41,68 @@ const FormWithdrawal = ({ isShow, handleHide }: Props) => {
     }
   }, [form, isShow])
 
+  const getUserOptions = (filter: string) => {
+    if (filter.length > 3) {
+      Api.get(`users/option?filter=${filter}`, token).then((res: any) => {
+        setUserOptions(res.data)
+      })
+    }
+  }
+
+  const getUserBankAccounts = () => {
+    setOnLoadBank(true)
+    form.setFieldValue('bank_account_id', undefined)
+    Api.get(`users/${form.getFieldValue('user_id')}/banks/option`, token)
+      .then((res: any) => {
+        setUserBankOptions(res.data)
+      })
+      .finally(() => setOnLoadBank(false))
+  }
+
+  const handleUpload: UploadProps['onChange'] = ({
+    file,
+    fileList: newFileList,
+  }) => {
+    newFileList = newFileList.map((file) => {
+      if (file.response) {
+        // Component will show file.url as link
+        const { data } = file.response
+
+        file.uid = Math.random().toString()
+        file.name = Math.random().toString()
+        file.url = data.file_path
+
+        form.setFieldValue('proof', data.file_path)
+      }
+      return file
+    })
+
+    setProof(newFileList)
+  }
+
   const onFinish = (values: any) => {
-    console.log('Success:', values)
+    setSubmitLoading(true)
+
+    Api.post(`withdraw`, token, null, values)
+      .then((res: any) => {
+        notification.success({ message: res.message })
+
+        setTimeout(() => {
+          reinitData()
+          handleHide()
+        }, 250)
+      })
+      .catch((err) => {
+        if (err === 'ERR_NETWORK') {
+          message.error({
+            content:
+              'Internal Server Error, Please try again later or contact admin',
+          })
+        } else {
+          message.error({ content: err.data.message })
+        }
+      })
+      .finally(() => setSubmitLoading(false))
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -46,58 +128,45 @@ const FormWithdrawal = ({ isShow, handleHide }: Props) => {
           autoComplete="off"
           className="mt-2"
         >
-          <Form.Item name="user" label="User" rules={[{ required: true }]}>
+          <Form.Item name="user_id" label="User" rules={[{ required: true }]}>
             <Select
               placeholder="Select user"
               allowClear
               showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '')
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={[
-                {
-                  value: 'jack',
-                  label: 'Jack',
-                },
-                {
-                  value: 'lucy',
-                  label: 'Lucy',
-                },
-                {
-                  value: 'tom',
-                  label: 'Tom',
-                },
-              ]}
+              filterOption={false}
+              onSearch={(value) => {
+                getUserOptions(value)
+              }}
+              defaultActiveFirstOption={false}
+              options={userOptions}
+              onSelect={getUserBankAccounts}
             ></Select>
           </Form.Item>
 
           <Form.Item
-            name="bank_account"
+            name="bank_account_id"
             label="Bank Account"
             rules={[{ required: true }]}
           >
             <Select
               placeholder="Select user bank account"
               allowClear
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '')
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
+              filterOption={false}
+              options={userBankOptions}
+              disabled={
+                onLoadBank || form.getFieldValue('user_id') === undefined
               }
-              options={[
-                {
-                  value: '11782',
-                  label: 'HSBC Bank Ltd - 12772716872',
-                },
-              ]}
             ></Select>
           </Form.Item>
 
           <Form.Item label="Amount" name="amount" rules={[{ required: true }]}>
-            <Input />
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value) =>
+                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+            />
           </Form.Item>
 
           <Form.Item name="status" label="Status" rules={[{ required: true }]}>
@@ -113,9 +182,13 @@ const FormWithdrawal = ({ isShow, handleHide }: Props) => {
             rules={[{ required: true, message: 'Please upload the proof!' }]}
           >
             <Upload
-              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+              action={`${API_URL}/withdraw/upload`}
+              headers={{
+                Authorization: `Bearer ${token}`,
+              }}
               listType="picture-card"
-              defaultFileList={[...fileList]}
+              onChange={handleUpload}
+              defaultFileList={[...proof]}
               maxCount={1}
             >
               {/* <Button icon={<UploadOutlined />}>Upload</Button> */}
@@ -128,10 +201,15 @@ const FormWithdrawal = ({ isShow, handleHide }: Props) => {
 
           <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={submitLoading}>
                 Submit
               </Button>
-              <Button onClick={() => form.resetFields()}>Reset</Button>
+              <Button
+                onClick={() => form.resetFields()}
+                disabled={submitLoading}
+              >
+                Reset
+              </Button>
             </Space>
           </Form.Item>
         </Form>

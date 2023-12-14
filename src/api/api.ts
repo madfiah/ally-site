@@ -54,17 +54,21 @@ export const Api = {
           return resolve(result.data)
         })
         .catch((error: any) => {
-          if (error.response.status === 401) {
-            message.error({ content: 'user unauthorized to access.' })
+          if (error.response) {
+            if (error.response.status === 401) {
+              message.error({ content: 'user unauthorized to access.' })
 
-            setTimeout(() => {
-              signOut({
-                callbackUrl: '/login',
-              })
-            }, 1000)
+              setTimeout(() => {
+                signOut({
+                  callbackUrl: '/login',
+                })
+              }, 1000)
+            }
+
+            reject(error.response)
+          } else {
+            reject('ERR_NETWORK')
           }
-
-          reject(error.response)
         })
     })
   },

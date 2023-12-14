@@ -453,6 +453,8 @@ const Withdrawals = ({ user }: IProps) => {
           <FormWithdrawal
             isShow={addWithdrawalModalOpen}
             handleHide={() => setAddWithdrawalModalOpen(false)}
+            token={user?.token}
+            reinitData={init}
           />
 
           <Modal
