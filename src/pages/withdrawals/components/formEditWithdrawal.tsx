@@ -136,6 +136,7 @@ const FormEditWithdrawal = ({
         open={isShow}
         onCancel={handleHide}
         footer={false}
+        style={{ top: '15px' }}
       >
         <Form
           form={form}
@@ -184,6 +185,10 @@ const FormEditWithdrawal = ({
               format={`YYYY-MM-DD H:mm:ss`}
               style={{ width: '100%' }}
             />
+          </Form.Item>
+
+          <Form.Item label="Proof" name="proof" style={{ display: 'none' }}>
+            <Input />
           </Form.Item>
 
           <Form.Item
