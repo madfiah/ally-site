@@ -36,6 +36,7 @@ import { Api } from '@/api/api'
 import { getSession } from 'next-auth/react'
 import { currency } from '@/utils/helpers'
 import moment from 'moment'
+import FormEditWithdrawal from './components/formEditWithdrawal'
 
 interface DataType {
   key: string
@@ -62,6 +63,7 @@ const Withdrawals = ({ user }: IProps) => {
   const fileList: UploadFile[] = []
   const [loading, setLoading] = useState(false)
   const [withdrawals, setWithdrawals] = useState<any>(null)
+  const [withdrawSelected, setWithdrawSelected] = useState<any>(null)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [dataSelected, setDataSelected] = useState<any>(null)
@@ -398,7 +400,16 @@ const Withdrawals = ({ user }: IProps) => {
             </Button>
           </Tooltip> */}
           <Tooltip title="Edit">
-            <Button size="small" onClick={showModal} disabled={data.status}>
+            <Button
+              size="small"
+              onClick={() => {
+                setWithdrawSelected(data)
+                setTimeout(() => {
+                  showModal()
+                }, 200)
+              }}
+              disabled={data.status}
+            >
               <EditOutlined />
             </Button>
           </Tooltip>
@@ -457,9 +468,17 @@ const Withdrawals = ({ user }: IProps) => {
             reinitData={init}
           />
 
+          <FormEditWithdrawal
+            isShow={isModalOpen}
+            handleHide={handleCancel}
+            withdraw={withdrawSelected}
+            token={user?.token}
+            reinitData={init}
+          />
+
           <Modal
             title="Update withdrawal - Gael Ulrich ZAFIMINO"
-            open={isModalOpen}
+            open={false}
             onCancel={handleCancel}
             footer={false}
           >
