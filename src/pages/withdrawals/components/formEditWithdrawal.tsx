@@ -1,11 +1,14 @@
 import {
   Button,
+  Col,
+  DatePicker,
   Form,
   Input,
   InputNumber,
   message,
   Modal,
   notification,
+  Row,
   Select,
   Space,
   Upload,
@@ -16,20 +19,36 @@ import type { UploadFile } from 'antd/es/upload/interface'
 import { Api } from '@/api/api'
 import type { UploadProps } from 'antd'
 
-const fileList: UploadFile[] = []
+import dayjs from 'dayjs'
+import weekday from 'dayjs/plugin/weekday'
+import localeData from 'dayjs/plugin/localeData'
+import timezone from 'dayjs/plugin/timezone'
+
+dayjs.extend(weekday)
+dayjs.extend(localeData)
+dayjs.extend(timezone)
+
+dayjs.tz.setDefault('Asia/Singapore')
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 interface Props {
   isShow: boolean
+  withdraw: any
   handleHide: any
   token: string
   reinitData: any
 }
 
-const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
+const FormEditWithdrawal = ({
+  isShow,
+  withdraw,
+  handleHide,
+  token,
+  reinitData,
+}: Props) => {
   const [form] = Form.useForm()
-  const [proof, setProof] = useState<UploadFile[]>([])
+
   const [userOptions, setUserOptions] = useState<any>(null)
   const [userBankOptions, setUserBankOptions] = useState<any>(null)
   const [onLoadBank, setOnLoadBank] = useState(false)
@@ -38,26 +57,24 @@ const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
   useEffect(() => {
     if (!isShow) {
       form.resetFields()
+    } else {
+      form.setFieldsValue(withdraw)
+
+      const transfer_at = withdraw?.transfer_at
+        ? dayjs(withdraw?.transfer_at)
+        : null
+      form.setFieldValue('transfer_at', transfer_at)
+
+      form.setFieldValue('proof_file', [
+        {
+          uid: '1',
+          name: 'proof_file',
+          status: 'done',
+          url: withdraw?.proof,
+        },
+      ])
     }
   }, [form, isShow])
-
-  const getUserOptions = (filter: string) => {
-    if (filter.length > 3) {
-      Api.get(`users/option?filter=${filter}`, token).then((res: any) => {
-        setUserOptions(res.data)
-      })
-    }
-  }
-
-  const getUserBankAccounts = () => {
-    setOnLoadBank(true)
-    form.setFieldValue('bank_account_id', undefined)
-    Api.get(`users/${form.getFieldValue('user_id')}/banks/option`, token)
-      .then((res: any) => {
-        setUserBankOptions(res.data)
-      })
-      .finally(() => setOnLoadBank(false))
-  }
 
   const handleUpload: UploadProps['onChange'] = ({
     file,
@@ -76,14 +93,17 @@ const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
       }
       return file
     })
-
-    setProof(newFileList)
   }
 
   const onFinish = (values: any) => {
+    console.log(values)
+
     setSubmitLoading(true)
 
-    Api.post(`withdraw`, token, null, values)
+    Api.post(`withdraw/${withdraw?.id}?_method=put`, token, null, {
+      ...values,
+      transfer_at: dayjs(values.transfer_at).format('YYYY-MM-DD H:mm:ss'),
+    })
       .then((res: any) => {
         notification.success({ message: res.message })
 
@@ -112,7 +132,7 @@ const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
   return (
     <>
       <Modal
-        title="Add withdrawal"
+        title={`Edit withdrawal - ${withdraw?.user_full_name}`}
         open={isShow}
         onCancel={handleHide}
         footer={false}
@@ -128,35 +148,12 @@ const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
           autoComplete="off"
           className="mt-2"
         >
-          <Form.Item name="user_id" label="User" rules={[{ required: true }]}>
-            <Select
-              placeholder="Select user"
-              allowClear
-              showSearch
-              filterOption={false}
-              onSearch={(value) => {
-                getUserOptions(value)
-              }}
-              defaultActiveFirstOption={false}
-              options={userOptions}
-              onSelect={getUserBankAccounts}
-            ></Select>
-          </Form.Item>
-
           <Form.Item
+            label="Bank ID"
             name="bank_account_id"
-            label="Bank Account"
-            rules={[{ required: true }]}
+            style={{ display: 'none' }}
           >
-            <Select
-              placeholder="Select user bank account"
-              allowClear
-              filterOption={false}
-              options={userBankOptions}
-              disabled={
-                onLoadBank || form.getFieldValue('user_id') === undefined
-              }
-            ></Select>
+            <Input />
           </Form.Item>
 
           <Form.Item label="Amount" name="amount" rules={[{ required: true }]}>
@@ -166,20 +163,33 @@ const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
                 `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
               }
               parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+              disabled
             />
           </Form.Item>
 
           <Form.Item name="status" label="Status" rules={[{ required: true }]}>
             <Select placeholder="Select status" allowClear>
-              <Select.Option value={1}>Paid</Select.Option>
-              <Select.Option value={0}>Pending</Select.Option>
+              <Select.Option value={true}>Paid</Select.Option>
+              <Select.Option value={false}>Pending</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
+            label="Transfer at"
+            name="transfer_at"
+            rules={[{ required: true, message: 'Date transfer is required' }]}
+          >
+            <DatePicker
+              showTime
+              format={`YYYY-MM-DD H:mm:ss`}
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+
+          <Form.Item
             label="Proof"
-            name="proof"
-            rules={[{ required: true, message: 'Please upload the proof!' }]}
+            name="proof_file"
+            rules={[{ required: true, message: 'Proof file is required' }]}
           >
             <Upload
               action={`${API_URL}/withdraw/upload`}
@@ -188,7 +198,6 @@ const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
               }}
               listType="picture-card"
               onChange={handleUpload}
-              defaultFileList={[...proof]}
               maxCount={1}
             >
               {/* <Button icon={<UploadOutlined />}>Upload</Button> */}
@@ -218,4 +227,4 @@ const FormWithdrawal = ({ isShow, handleHide, token, reinitData }: Props) => {
   )
 }
 
-export default FormWithdrawal
+export default FormEditWithdrawal

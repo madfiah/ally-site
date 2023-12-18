@@ -3,12 +3,15 @@ import {
   DeleteOutlined,
   EditOutlined,
   FileSearchOutlined,
+  FilterOutlined,
   PlusOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import {
   Button,
   Card,
   Col,
+  DatePicker,
   Form,
   Input,
   InputNumber,
@@ -19,16 +22,48 @@ import {
   Table,
   Tag,
   Tooltip,
+  Typography,
   Upload,
 } from 'antd'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { UploadFile } from 'antd/es/upload/interface'
 import FormWithdrawal from './components/formWithdrawal'
 
-const Withdrawals = () => {
+import type { InputRef } from 'antd'
+import type { ColumnType, ColumnsType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
+import { Api } from '@/api/api'
+import { getSession } from 'next-auth/react'
+import { currency } from '@/utils/helpers'
+import moment from 'moment'
+import FormEditWithdrawal from './components/formEditWithdrawal'
+
+interface DataType {
+  key: string
+  user_full_name: number
+  amount: number
+  bank_name: string
+  account_name: string
+  account_number: string
+  swift_code: string
+  iban_code: string
+  status: number
+  created_at: string
+}
+
+type DataIndex = keyof DataType
+
+interface IProps {
+  user: any
+}
+
+const Withdrawals = ({ user }: IProps) => {
   const [form] = Form.useForm()
 
   const fileList: UploadFile[] = []
+  const [loading, setLoading] = useState(false)
+  const [withdrawals, setWithdrawals] = useState<any>(null)
+  const [withdrawSelected, setWithdrawSelected] = useState<any>(null)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [dataSelected, setDataSelected] = useState<any>(null)
@@ -36,6 +71,38 @@ const Withdrawals = () => {
   const [previewImage, setPreviewImage] = useState('')
   const [previewTitle, setPreviewTitle] = useState('')
   const [previewOpen, setPreviewOpen] = useState(false)
+
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+  const searchInput = useRef<InputRef>(null)
+  const [userOptions, setUserOptions] = useState<any>(null)
+  const [filter, setFilter] = useState({
+    user_id: '',
+    amount: '',
+    status: '',
+    created_at: '',
+  })
+
+  const init = async () => {
+    setLoading(true)
+
+    await Api.get(`withdraw`, user?.token, filter)
+      .then((res: any) => {
+        setWithdrawals(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => setLoading(false))
+
+    setTimeout(() => {
+      setLoading(false)
+    }, 2000)
+  }
+
+  useEffect(() => {
+    init()
+  }, [filter])
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -57,36 +124,179 @@ const Withdrawals = () => {
     setPreviewTitle('Preview : proof withdrawal')
   }
 
-  const dataSource = [
-    {
-      key: '1',
-      user_fullname: 'Gael Ulrich ZAFIMINO',
-      amount: 221.57,
-      bank_name: 'DBS Bank Ltd',
-      account_name: 'Gael Ulrich ZAFIMINO',
-      bank_number: '1181000179',
-      swift_code: 'DBSSSGSGXXX',
-      iban_code: '',
-      status: 1,
-      date_requested: '1/25/2023, 10:13:01',
-      proof: 'https://dummyimage.com/600x400/000/fff',
-    },
-    {
-      key: '1',
-      user_fullname: 'Gael Ulrich ZAFIMINO',
-      amount: 221.57,
-      bank_name: 'DBS Bank Ltd',
-      account_name: 'Gael Ulrich ZAFIMINO',
-      bank_number: '1181000179',
-      swift_code: 'DBSSSGSGXXX',
-      iban_code: '',
-      status: 1,
-      date_requested: '1/25/2023, 10:13:01',
-      proof: 'https://dummyimage.com/600x400/000/fff',
-    },
-  ]
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex
+  ) => {
+    confirm()
+    setSearchText(selectedKeys[0])
+    setSearchedColumn(dataIndex)
 
-  const columns = [
+    switch (dataIndex) {
+      case 'user_full_name':
+        setFilter({
+          ...filter,
+          user_id: selectedKeys[0],
+        })
+        break
+      case 'status':
+        setFilter({
+          ...filter,
+          status: selectedKeys[0],
+        })
+        break
+
+      default:
+        setFilter({
+          ...filter,
+          [dataIndex]: selectedKeys[0],
+        })
+        break
+    }
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+    setSearchText('')
+  }
+
+  const getUserOptions = (filter: string) => {
+    if (filter.length > 3) {
+      Api.get(`users/option?filter=${filter}`, user?.token).then((res: any) => {
+        setUserOptions(res.data)
+      })
+    }
+  }
+
+  const getColumnSearchProps = (
+    dataIndex: DataIndex
+  ): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        {dataIndex === 'user_full_name' ? (
+          <Select
+            showSearch
+            allowClear
+            style={{ display: 'block', marginBottom: 8 }}
+            placeholder={'Search User'}
+            defaultActiveFirstOption={false}
+            suffixIcon={null}
+            filterOption={false}
+            onSearch={(value) => {
+              getUserOptions(value)
+            }}
+            onChange={(val: string) => setSelectedKeys(val ? [val] : [])}
+            notFoundContent={null}
+            options={userOptions}
+          />
+        ) : dataIndex === 'status' ? (
+          <Select
+            allowClear
+            placeholder="Select Status Payment"
+            style={{ marginBottom: 8, display: 'block' }}
+            value={selectedKeys[0]}
+            options={[
+              { value: 'pending', label: 'Pending' },
+              { value: 'paid', label: 'Paid' },
+            ]}
+            onChange={(val) => setSelectedKeys(val !== undefined ? [val] : [])}
+          />
+        ) : dataIndex === 'created_at' ? (
+          <DatePicker
+            placeholder={'Select request date'}
+            format={'YYYY-MM-DD'}
+            style={{ display: 'block', marginBottom: '8px' }}
+            onChange={(e: any) => {
+              if (e) {
+                const value = moment(e.$d).format('YYYY-MM-DD')
+                setSelectedKeys([value])
+              } else {
+                setSelectedKeys([])
+              }
+            }}
+          />
+        ) : (
+          <Input
+            ref={searchInput}
+            placeholder={`Search ${dataIndex}`}
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+        )}
+        <Space>
+          <Button
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false })
+              setSearchText((selectedKeys as string[])[0])
+              setSearchedColumn(dataIndex)
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <>
+        {dataIndex !== 'status' ? (
+          <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        ) : (
+          <FilterOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        )}
+      </>
+    ),
+    onFilter: (value, record) => true,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    },
+    render: (text) => text,
+  })
+
+  const columns: ColumnsType<DataType> = [
     {
       title: 'No.',
       dataIndex: 'key',
@@ -94,62 +304,66 @@ const Withdrawals = () => {
       render: (key: any, data: any, idx: number) => {
         return <>{idx + 1}</>
       },
+      fixed: 'left',
     },
     {
       title: 'User',
-      dataIndex: 'user_fullname',
-      key: 'user_fullname',
+      dataIndex: 'user_full_name',
+      key: 'user_full_name',
+      ...getColumnSearchProps('user_full_name'),
+      fixed: 'left',
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
+      fixed: 'left',
+      ...getColumnSearchProps('amount'),
       render: (amount: number) => (
-        <InputNumber
-          style={{ width: '100%' }}
-          defaultValue={amount}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          }
-          bordered={false}
-          readOnly
-        />
+        <span style={{ display: 'block', textAlign: 'right' }}>
+          {currency(amount)}
+        </span>
       ),
     },
     {
       title: 'Bank name',
-      dataIndex: 'bank_name',
-      key: 'bank_name',
+      dataIndex: 'bank',
+      key: 'bank',
+      render: (bank: any) => (bank ? bank.bank_name : '-'),
     },
     {
       title: 'Account name',
-      dataIndex: 'account_name',
-      key: 'account_name',
+      dataIndex: 'bank',
+      key: 'bank',
+      render: (bank: any) => (bank ? bank.account_name : '-'),
     },
     {
       title: 'Account number',
-      dataIndex: 'bank_number',
-      key: 'bank_number',
+      dataIndex: 'bank',
+      key: 'bank',
+      render: (bank: any) => (bank ? bank.account_number : '-'),
     },
     {
       title: 'SWIFT Code',
-      dataIndex: 'swift_code',
-      key: 'swift_code',
+      dataIndex: 'bank',
+      key: 'bank',
+      render: (bank: any) => (bank?.swift ? bank.swift : '-'),
     },
     {
       title: 'IBAN code',
-      dataIndex: 'iban_code',
-      key: 'iban_code',
-      render: (iban_code: string) => <>{iban_code ? iban_code : 'N/A'}</>,
+      dataIndex: 'bank',
+      key: 'bank',
+      render: (bank: any) => <>{bank?.iban ? bank.iban : 'N/A'}</>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      ...getColumnSearchProps('status'),
       render: (sent_at: boolean) => (
         <>
           {sent_at ? (
-            <Tag color="cyan">Sent</Tag>
+            <Tag color="cyan">Paid</Tag>
           ) : (
             <Tag color="orange">Pending</Tag>
           )}
@@ -158,14 +372,16 @@ const Withdrawals = () => {
     },
     {
       title: 'Date requested',
-      dataIndex: 'date_requested',
-      key: 'date_requested',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      ...getColumnSearchProps('created_at'),
     },
     {
       title: '',
       dataIndex: '',
       key: 'x',
-      width: '150px',
+      width: '120px',
+      fixed: 'right',
       render: (data: any) => (
         <Space size={`small`} className="space-end">
           <Tooltip title="See Transfer Proof">
@@ -184,7 +400,16 @@ const Withdrawals = () => {
             </Button>
           </Tooltip> */}
           <Tooltip title="Edit">
-            <Button size="small" onClick={showModal}>
+            <Button
+              size="small"
+              onClick={() => {
+                setWithdrawSelected(data)
+                setTimeout(() => {
+                  showModal()
+                }, 200)
+              }}
+              disabled={data.status}
+            >
               <EditOutlined />
             </Button>
           </Tooltip>
@@ -214,26 +439,46 @@ const Withdrawals = () => {
       <Row>
         <Col span={24}>
           <Space className="space-between mb-1">
-            <h3 className="m-0 fw-300">KB wallet withdrawals</h3>
+            <Typography.Title level={3} className="m-0">
+              KB wallet withdrawals
+            </Typography.Title>
             <Tooltip title="Add withdrawal request">
               <Button
                 size="small"
                 icon={<PlusOutlined />}
                 onClick={() => setAddWithdrawalModalOpen(true)}
-              ></Button>
+              >
+                Add new request
+              </Button>
             </Tooltip>
           </Space>
 
-          <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
+          <Table
+            dataSource={withdrawals}
+            columns={columns}
+            className={'mt-1'}
+            loading={loading}
+            scroll={{ x: 1300 }}
+          />
 
           <FormWithdrawal
             isShow={addWithdrawalModalOpen}
             handleHide={() => setAddWithdrawalModalOpen(false)}
+            token={user?.token}
+            reinitData={init}
+          />
+
+          <FormEditWithdrawal
+            isShow={isModalOpen}
+            handleHide={handleCancel}
+            withdraw={withdrawSelected}
+            token={user?.token}
+            reinitData={init}
           />
 
           <Modal
             title="Update withdrawal - Gael Ulrich ZAFIMINO"
-            open={isModalOpen}
+            open={false}
             onCancel={handleCancel}
             footer={false}
           >
@@ -304,12 +549,14 @@ const Withdrawals = () => {
             title={previewTitle}
             footer={null}
             onCancel={handleClosePreview}
-            style={{ top: 20 }}
+            width={`60%`}
+            style={{ top: 10 }}
           >
             <img
               alt={previewTitle}
               style={{ width: '100%', marginTop: '15px' }}
               src={previewImage}
+              loading={'lazy'}
             />
           </Modal>
         </Col>
@@ -319,3 +566,14 @@ const Withdrawals = () => {
 }
 
 export default Withdrawals
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
