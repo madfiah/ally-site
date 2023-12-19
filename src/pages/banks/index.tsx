@@ -1,66 +1,230 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Card, Space, Table, Tooltip } from 'antd'
-import { useState } from 'react'
+import { Api } from '@/api/api'
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from '@ant-design/icons'
+import { Montserrat, Nunito, Quicksand, Ubuntu } from '@next/font/google'
+import {
+  Button,
+  Card,
+  Input,
+  message,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd'
+import { getSession } from 'next-auth/react'
+import { useEffect, useRef, useState } from 'react'
 import FormBank from './components/formBank'
 
-const Banks = () => {
+import type { InputRef } from 'antd'
+import type { ColumnType, ColumnsType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
+
+const nunito = Nunito({ subsets: ['latin'] })
+const montserrat = Montserrat({ subsets: ['latin'] })
+const ubuntu = Ubuntu({ weight: '500', subsets: ['latin'] })
+
+interface DataType {
+  key: string
+  bank_code: string
+  bic_code: string
+  iban_code: string
+  bank_name: string
+  currency: string
+  country: string
+}
+type DataIndex = keyof DataType
+
+interface IProps {
+  user: any
+}
+
+const Banks = ({ user }: IProps) => {
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [formAction, setFormAction] = useState('')
   const [bank, setBank] = useState({})
+  const [banks, setBanks] = useState<any>(null)
 
-  const dataSource = [
-    {
-      key: '1',
-      bank_code: '',
-      bic_code: 'NWBKGB2L',
-      iban_code: 'GB25NWBK60062733624135',
-      name: 'Natwest',
-      currency: 'GBP',
-      country: 'United Kingdom',
-      status: 0,
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+  const searchInput = useRef<InputRef>(null)
+
+  const init = () => {
+    setLoading(true)
+    Api.get(`banks`, user?.token)
+      .then((res: any) => {
+        setBanks(res.data)
+      })
+      .catch((err) => {
+        message.error({ content: err.data.message })
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    init()
+  }, [])
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex
+  ) => {
+    confirm()
+    setSearchText(selectedKeys[0])
+    setSearchedColumn(dataIndex)
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+    setSearchText('')
+  }
+
+  const getColumnSearchProps = (
+    dataIndex: DataIndex
+  ): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() =>
+            handleSearch(selectedKeys as string[], confirm, dataIndex)
+          }
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false })
+              setSearchText((selectedKeys as string[])[0])
+              setSearchedColumn(dataIndex)
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        ? record[dataIndex]
+            .toString()
+            .toLowerCase()
+            .includes((value as string).toLowerCase())
+        : false,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
     },
-    {
-      key: '1',
-      bank_code: '',
-      bic_code: 'NWBKGB2L',
-      iban_code: 'GB25NWBK60062733624135',
-      name: 'Natwest',
-      currency: 'GBP',
-      country: 'United Kingdom',
-      status: 0,
-    },
-  ]
+    render: (text) => text,
+  })
 
   const columns = [
+    // {
+    //   title: 'Bank Code',
+    //   dataIndex: 'bank_code',
+    //   key: 'bank_code',
+    //   width: 130,
+    //   ...getColumnSearchProps('bank_code'),
+    //   render: (bank_code: string) => (bank_code ? bank_code : '-'),
+    // },
     {
-      title: 'Bank Code',
-      dataIndex: 'bank_code',
-      key: 'bank_code',
-    },
-    {
-      title: 'BIC Code',
+      title: 'BIC / Swift Code',
       dataIndex: 'bic_code',
       key: 'bic_code',
+      width: 200,
+      ...getColumnSearchProps('bic_code'),
+      render: (bic_code: string) => (bic_code ? bic_code : '-'),
     },
     {
       title: 'IBAN Code',
       dataIndex: 'iban_code',
       key: 'iban_code',
+      width: 300,
+      ...getColumnSearchProps('iban_code'),
+      render: (iban_code: string) => (iban_code ? iban_code : '-'),
     },
     {
       title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'bank_name',
+      key: 'bank_name',
+      width: 250,
+      ...getColumnSearchProps('bank_name'),
     },
     {
       title: 'Currency',
       dataIndex: 'currency',
       key: 'currency',
+      width: 100,
+      ...getColumnSearchProps('currency'),
     },
     {
       title: 'Country',
       dataIndex: 'country',
       key: 'country',
+      ...getColumnSearchProps('country'),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'is_enable',
+      key: 'is_enable',
+      sorter: (a: any, b: any) => a.is_enable - b.is_enable,
+      render: (is_enable: boolean) =>
+        is_enable ? (
+          <Tag color={`blue`}>Enable</Tag>
+        ) : (
+          <Tag color={`silver`}>Disable</Tag>
+        ),
     },
     {
       title: '',
@@ -93,7 +257,13 @@ const Banks = () => {
   return (
     <Card>
       <Space className="space-between mb-1">
-        <h3 className="m-0 fw-300">List of Banks</h3>
+        <Typography.Title
+          level={4}
+          className={`m-0 ${nunito.className}`}
+          style={{ fontWeight: '500' }}
+        >
+          List of Banks
+        </Typography.Title>
 
         <Tooltip title="Add new bank account">
           <Button
@@ -104,16 +274,34 @@ const Banks = () => {
         </Tooltip>
       </Space>
 
-      <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
+      <Table
+        dataSource={banks}
+        columns={columns}
+        className={'mt-1'}
+        loading={loading}
+      />
 
       <FormBank
         isShow={isFormOpen}
         bank={bank}
         action={formAction}
         handleHide={() => setIsFormOpen(false)}
+        token={user?.token}
+        reInit={init}
       />
     </Card>
   )
 }
 
 export default Banks
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
