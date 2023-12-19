@@ -37,6 +37,7 @@ import { getSession } from 'next-auth/react'
 import { currency } from '@/utils/helpers'
 import moment from 'moment'
 import FormEditWithdrawal from './components/formEditWithdrawal'
+import Link from 'next/link'
 
 interface DataType {
   key: string
@@ -301,6 +302,7 @@ const Withdrawals = ({ user }: IProps) => {
       title: 'No.',
       dataIndex: 'key',
       key: 'key',
+      width: 70,
       render: (key: any, data: any, idx: number) => {
         return <>{idx + 1}</>
       },
@@ -312,6 +314,11 @@ const Withdrawals = ({ user }: IProps) => {
       key: 'user_full_name',
       ...getColumnSearchProps('user_full_name'),
       fixed: 'left',
+      render: (user_full_name: string, data: any) => (
+        <Link href={`users/${data?.id}/transactions`} target={`_blank`}>
+          {user_full_name}
+        </Link>
+      ),
     },
     {
       title: 'Amount',
