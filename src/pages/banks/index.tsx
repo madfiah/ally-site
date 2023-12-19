@@ -2,15 +2,19 @@ import { Api } from '@/api/api'
 import {
   DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
 import { Montserrat, Nunito, Quicksand, Ubuntu } from '@next/font/google'
 import {
+  Breadcrumb,
   Button,
   Card,
   Input,
   message,
+  Modal,
+  notification,
   Space,
   Table,
   Tag,
@@ -45,6 +49,7 @@ interface IProps {
 }
 
 const Banks = ({ user }: IProps) => {
+  const [modal, contextHolder] = Modal.useModal()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formAction, setFormAction] = useState('')
@@ -170,14 +175,21 @@ const Banks = ({ user }: IProps) => {
   })
 
   const columns = [
-    // {
-    //   title: 'Bank Code',
-    //   dataIndex: 'bank_code',
-    //   key: 'bank_code',
-    //   width: 130,
-    //   ...getColumnSearchProps('bank_code'),
-    //   render: (bank_code: string) => (bank_code ? bank_code : '-'),
-    // },
+    {
+      title: 'No.',
+      dataIndex: 'key',
+      key: 'key',
+      render: (key: any, data: any, idx: number) => {
+        return <>{idx + 1}</>
+      },
+    },
+    {
+      title: 'Name',
+      dataIndex: 'bank_name',
+      key: 'bank_name',
+      width: 250,
+      ...getColumnSearchProps('bank_name'),
+    },
     {
       title: 'BIC / Swift Code',
       dataIndex: 'bic_code',
@@ -193,13 +205,6 @@ const Banks = ({ user }: IProps) => {
       width: 300,
       ...getColumnSearchProps('iban_code'),
       render: (iban_code: string) => (iban_code ? iban_code : '-'),
-    },
-    {
-      title: 'Name',
-      dataIndex: 'bank_name',
-      key: 'bank_name',
-      width: 250,
-      ...getColumnSearchProps('bank_name'),
     },
     {
       title: 'Currency',
@@ -238,8 +243,13 @@ const Banks = ({ user }: IProps) => {
               <EditOutlined />
             </Button>
           </Tooltip>
+
           <Tooltip title="Delete bank account">
-            <Button size="small" danger>
+            <Button
+              size="small"
+              danger
+              onClick={() => confirmDeleteContact(data)}
+            >
               <DeleteOutlined />
             </Button>
           </Tooltip>
@@ -254,42 +264,79 @@ const Banks = ({ user }: IProps) => {
     setIsFormOpen(true)
   }
 
+  const confirmDeleteContact = (data: any) => {
+    modal.confirm({
+      title: 'Delete Bank',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <Typography.Text>
+          {`Are you sure want to delete data bank `} <b>{data.bank_name}</b>
+        </Typography.Text>
+      ),
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        setLoading(true)
+
+        Api.post(`banks/${data?.id}?_method=delete`, user?.token)
+          .then((res: any) => {
+            notification.success({ message: res.message })
+
+            init()
+          })
+          .catch((err) => {
+            message.error({ content: err.data.message })
+          })
+          .finally(() => setLoading(false))
+      },
+    })
+  }
+
   return (
-    <Card>
-      <Space className="space-between mb-1">
-        <Typography.Title
-          level={4}
-          className={`m-0 ${nunito.className}`}
-          style={{ fontWeight: '500' }}
-        >
-          List of Banks
-        </Typography.Title>
+    <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Banks</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
 
-        <Tooltip title="Add new bank account">
-          <Button
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => onOpenForm('create', {})}
-          ></Button>
-        </Tooltip>
-      </Space>
+      <Card>
+        <Space className="space-between mb-1">
+          <Typography.Title
+            level={4}
+            className={`m-0 ${nunito.className}`}
+            style={{ fontWeight: '500' }}
+          >
+            List of Banks
+          </Typography.Title>
 
-      <Table
-        dataSource={banks}
-        columns={columns}
-        className={'mt-1'}
-        loading={loading}
-      />
+          <Tooltip title="Add new bank account">
+            <Button
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => onOpenForm('create', {})}
+            ></Button>
+          </Tooltip>
+        </Space>
 
-      <FormBank
-        isShow={isFormOpen}
-        bank={bank}
-        action={formAction}
-        handleHide={() => setIsFormOpen(false)}
-        token={user?.token}
-        reInit={init}
-      />
-    </Card>
+        <Table
+          dataSource={banks}
+          columns={columns}
+          className={'mt-1'}
+          loading={loading}
+        />
+
+        <FormBank
+          isShow={isFormOpen}
+          bank={bank}
+          action={formAction}
+          handleHide={() => setIsFormOpen(false)}
+          token={user?.token}
+          reInit={init}
+        />
+
+        {contextHolder}
+      </Card>
+    </>
   )
 }
 

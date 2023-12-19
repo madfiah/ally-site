@@ -103,7 +103,7 @@ const FormBank = ({
         </Form.Item> */}
 
         <Form.Item
-          label="BIC code"
+          label="BIC / Swift code"
           name="bic_code"
           rules={[
             { required: true, message: 'Please input project bic code!' },

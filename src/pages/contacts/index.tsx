@@ -7,6 +7,7 @@ import {
   SendOutlined,
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Card,
   Input,
@@ -243,6 +244,11 @@ const Contacts = ({ user }: IProps) => {
 
   return (
     <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Contacts</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
+
       <Card>
         <Space className="space-between mb-1">
           <h3 className="m-0 fw-300">List of Contacts</h3>
