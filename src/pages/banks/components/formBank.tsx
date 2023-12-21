@@ -1,4 +1,15 @@
-import { Button, Form, Input, Modal, Select, Space } from 'antd'
+import { Api } from '@/api/api'
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  notification,
+  Select,
+  Space,
+  Switch,
+} from 'antd'
 
 import { useEffect, useState } from 'react'
 
@@ -7,23 +18,58 @@ interface Props {
   handleHide: any
   action: string
   bank?: any
+  token: string
+  reInit: any
 }
 
-const FormBank = ({ isShow, handleHide, action, bank }: Props) => {
+const FormBank = ({
+  isShow,
+  handleHide,
+  action,
+  bank,
+  token,
+  reInit,
+}: Props) => {
   const [form] = Form.useForm()
   const [data, setData] = useState({})
+  const [loadingSubmit, setLoadingSubmit] = useState(false)
+  const [countryOptions, setCountryOptions] = useState<any>(null)
+
+  const countryOption = async () => {
+    await Api.get(`countries-option`, token)
+      .then((res: any) => {
+        setCountryOptions(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
 
   useEffect(() => {
     if (!isShow) {
       setData({})
       form.resetFields()
     } else {
+      countryOption()
       form.setFieldsValue(bank)
     }
   }, [form, isShow, bank])
 
   const onFinish = (values: any) => {
-    console.log('Success:', values)
+    setLoadingSubmit(true)
+
+    const uri = action === 'create' ? `banks` : `banks/${bank?.id}?_method=put`
+
+    Api.post(uri, token, null, values)
+      .then((res: any) => {
+        notification.success({ message: res.message })
+        reInit()
+        handleHide()
+      })
+      .catch((err) => {
+        message.error({ content: err.data.message })
+      })
+      .finally(() => setLoadingSubmit(false))
   }
 
   const onFinishFailed = (errorInfo: any) => {
@@ -48,16 +94,16 @@ const FormBank = ({ isShow, handleHide, action, bank }: Props) => {
         autoComplete="off"
         className="mt-2"
       >
-        <Form.Item
+        {/* <Form.Item
           label="Bank Code"
           name="bank_code"
           rules={[{ required: true, message: 'Please input bank code!' }]}
         >
           <Input placeholder="Enter the bank code" />
-        </Form.Item>
+        </Form.Item> */}
 
         <Form.Item
-          label="BIC code"
+          label="BIC / Swift code"
           name="bic_code"
           rules={[
             { required: true, message: 'Please input project bic code!' },
@@ -76,7 +122,7 @@ const FormBank = ({ isShow, handleHide, action, bank }: Props) => {
 
         <Form.Item
           label="Name"
-          name="name"
+          name="bank_name"
           rules={[{ required: true, message: 'Please input name!' }]}
         >
           <Input />
@@ -91,17 +137,21 @@ const FormBank = ({ isShow, handleHide, action, bank }: Props) => {
         </Form.Item>
 
         <Form.Item name="country" label="Country" rules={[{ required: true }]}>
-          <Select placeholder="Select country" showSearch allowClear>
-            <Select.Option value="Indonesia">Indonesia</Select.Option>
-            <Select.Option value="Sinagpore">Sinagpore</Select.Option>
-            <Select.Option value="Malaysia">Malaysia</Select.Option>
-            <Select.Option value="United Kingdom">United Kingdom</Select.Option>
-          </Select>
+          <Select
+            placeholder="Select country"
+            showSearch
+            allowClear
+            options={countryOptions}
+          ></Select>
+        </Form.Item>
+
+        <Form.Item label="Is Enable" name="is_enable" valuePropName="checked">
+          <Switch />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
           <Space>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loadingSubmit}>
               Submit
             </Button>
             <Button onClick={() => form.resetFields()}>Reset</Button>
