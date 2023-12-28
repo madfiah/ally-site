@@ -1,15 +1,10 @@
 import Link from 'next/link'
 import type { MenuProps } from 'antd'
 import {
-  DesktopOutlined,
-  FileOutlined,
   PieChartOutlined,
-  TeamOutlined,
   UserOutlined,
   BarsOutlined,
   MoneyCollectOutlined,
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
   ApartmentOutlined,
   RadiusSettingOutlined,
   DiffOutlined,
@@ -17,10 +12,6 @@ import {
 } from '@ant-design/icons'
 
 type MenuItem = Required<MenuProps>['items'][number]
-
-type LayoutProps = {
-  children: React.ReactNode
-}
 
 function getItem(
   label: React.ReactNode,
