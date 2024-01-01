@@ -146,7 +146,7 @@ const EditBlog = ({ user }: IProps) => {
                 {/* <Input placeholder="set status" /> */}
                 <Select placeholder={`Select status`}>
                   <Select.Option value={1}>Enable</Select.Option>
-                  <Select.Option value={0}>Diable</Select.Option>
+                  <Select.Option value={0}>Disable</Select.Option>
                 </Select>
               </Form.Item>
             </Col>

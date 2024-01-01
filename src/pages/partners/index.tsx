@@ -2,10 +2,28 @@ import {
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
+  ExclamationCircleOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
-import { Button, Card, Space, Table, Tooltip } from 'antd'
+import {
+  Button,
+  Card,
+  message,
+  Modal,
+  notification,
+  Space,
+  Table,
+  Tooltip,
+  Typography,
+} from 'antd'
+import { getSession } from 'next-auth/react'
 import type { ColumnsType, TableProps } from 'antd/es/table'
+import { useEffect, useRef, useState } from 'react'
+
+import type { InputRef } from 'antd'
+import type { ColumnType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
+import { Api } from '@/api/api'
 
 interface DataType {
   key: React.Key
@@ -14,25 +32,64 @@ interface DataType {
   description: string
 }
 
-const Affiliations = () => {
-  const dataSource = [
-    {
-      key: '1',
-      name: 'IF@SG',
-      url: '/campaign?page=1&a=59bb2940-4b13-4ca0-a47a-54a02ebf915e',
-      status: 1,
-      affiliation: 2,
-      created_at: '2023-03-10 11:46:38',
-    },
-    {
-      key: '1',
-      name: 'HHWT',
-      url: '/campaign?page=1&a=59bb2940-4b13-4ca0-a47a-54a02ebf915e',
-      status: 0,
-      affiliation: 0,
-      created_at: '2022-12-15 09:46:38',
-    },
-  ]
+interface IProps {
+  user: any
+}
+
+const Affiliations = ({ user }: IProps) => {
+  const [modal, contextHolder] = Modal.useModal()
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<any>(null)
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+  const searchInput = useRef<InputRef>(null)
+
+  const init = () => {
+    setLoading(true)
+
+    Api.get(`partners`, user?.token)
+      .then((res: any) => {
+        setData(res.data)
+      })
+      .catch((err) => {
+        message.error({ content: err.data.message })
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    init()
+  }, [])
+
+  const confirmDeleteParner = (data: any) => {
+    modal.confirm({
+      title: 'Delete Action',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <Typography.Text>
+          {`Are you sure want to delete data partner `} <b>{data.name}</b>
+        </Typography.Text>
+      ),
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      onOk: () => {
+        setLoading(true)
+
+        Api.post(`partners/${data?.id}?_method=delete`, user?.token)
+          .then((res: any) => {
+            notification.success({ message: res.message })
+
+            setTimeout(() => {
+              init()
+            }, 500)
+          })
+          .catch((err) => {
+            message.error({ content: err.data.message })
+          })
+          .finally(() => setLoading(false))
+      },
+    })
+  }
 
   const columns = [
     {
@@ -45,10 +102,10 @@ const Affiliations = () => {
     },
     {
       title: 'Active',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: boolean) => (
-        <>{status ? <CheckOutlined /> : <CloseOutlined />}</>
+      dataIndex: 'active',
+      key: 'active',
+      render: (active: boolean) => (
+        <>{active ? <CheckOutlined /> : <CloseOutlined />}</>
       ),
     },
     {
@@ -58,13 +115,14 @@ const Affiliations = () => {
     },
     {
       title: 'Url',
-      dataIndex: 'url',
-      key: 'url',
+      dataIndex: 'id',
+      key: 'id',
+      render: (id: string) => `/campaign?page=1&a=${id}`,
     },
     {
       title: 'Affiliation',
-      dataIndex: 'affiliation',
-      key: 'affiliation',
+      dataIndex: 'affiliation_count',
+      key: 'affiliation_count',
     },
     {
       title: 'Created at',
@@ -79,7 +137,11 @@ const Affiliations = () => {
       render: (data: any) => (
         <Space size={`small`} className="space-end">
           <Tooltip title="Delete affiliation">
-            <Button size="small" danger>
+            <Button
+              size="small"
+              danger
+              onClick={() => confirmDeleteParner(data)}
+            >
               <DeleteOutlined />
             </Button>
           </Tooltip>
@@ -89,14 +151,36 @@ const Affiliations = () => {
   ]
 
   return (
-    <Card>
-      <Space className="space-between mb-1">
-        <h3 className="m-0 fw-300">Affiliations</h3>
-      </Space>
+    <>
+      <Card>
+        <Space className="space-between mb-1">
+          <Typography.Title level={3} className={`m-0`}>
+            Partners
+          </Typography.Title>
+        </Space>
 
-      <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
-    </Card>
+        <Table
+          dataSource={data}
+          columns={columns}
+          className={'mt-1'}
+          loading={loading}
+        />
+      </Card>
+
+      {contextHolder}
+    </>
   )
 }
 
 export default Affiliations
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}

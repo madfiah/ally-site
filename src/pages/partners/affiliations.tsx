@@ -1,29 +1,154 @@
-import { PlusOutlined } from '@ant-design/icons'
-import { Button, Card, Space, Table, Tooltip } from 'antd'
+import { Api } from '@/api/api'
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
+import {
+  Button,
+  Card,
+  Input,
+  message,
+  Space,
+  Table,
+  Tooltip,
+  Typography,
+} from 'antd'
 import type { ColumnsType, TableProps } from 'antd/es/table'
+import { getSession } from 'next-auth/react'
+import { useEffect, useRef, useState } from 'react'
+
+import type { InputRef } from 'antd'
+import type { ColumnType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
 
 interface DataType {
   key: React.Key
-  investor: string
-  vendor: string
-  description: string
+  user_name: string
+  vendor_name: string
 }
 
-const Affiliations = () => {
-  const dataSource = [
-    {
-      key: '1',
-      investor: 'Fithriyyah Konzan',
-      vendor: 'IF@SG',
-      description: 'Registration',
+type DataIndex = keyof DataType
+
+interface IProps {
+  user: any
+}
+
+const Affiliations = ({ user }: IProps) => {
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<any>(null)
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+  const searchInput = useRef<InputRef>(null)
+
+  const init = () => {
+    setLoading(true)
+
+    Api.get(`affiliations`, user?.token)
+      .then((res: any) => {
+        setData(res.data)
+      })
+      .catch((err) => {
+        message.error({ content: err.data.message })
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    init()
+  }, [])
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex
+  ) => {
+    confirm()
+    setSearchText(selectedKeys[0])
+    setSearchedColumn(dataIndex)
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+    setSearchText('')
+  }
+
+  const getColumnSearchProps = (
+    dataIndex: DataIndex
+  ): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() =>
+            handleSearch(selectedKeys as string[], confirm, dataIndex)
+          }
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false })
+              setSearchText((selectedKeys as string[])[0])
+              setSearchedColumn(dataIndex)
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes((value as string).toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
     },
-    {
-      key: '2',
-      investor: `Isma'il Mustafa`,
-      vendor: 'Islamic Finance Guru',
-      description: 'Registration',
-    },
-  ]
+    render: (text) => text,
+  })
 
   const columns: ColumnsType<DataType> = [
     {
@@ -33,33 +158,63 @@ const Affiliations = () => {
       render: (key: any, data: any, idx: number) => {
         return <>{idx + 1}</>
       },
+      width: 50,
     },
     {
       title: 'Investor',
-      dataIndex: 'investor',
-      key: 'investor',
+      dataIndex: 'user_name',
+      key: 'user_name',
+      ...getColumnSearchProps('user_name'),
+      width: 400,
     },
     {
       title: 'Vendor',
-      dataIndex: 'vendor',
-      key: 'vendor',
+      dataIndex: 'vendor_name',
+      key: 'vendor_name',
+      ...getColumnSearchProps('vendor_name'),
+      width: 300,
     },
     {
       title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      dataIndex: 'investment_id',
+      key: 'investment_id',
+      render: (investment_id: number, data: any) => (
+        <>
+          {investment_id !== null
+            ? `Invest to campaign ${data.campaign_name}`
+            : `Registration`}
+        </>
+      ),
     },
   ]
 
   return (
     <Card>
       <Space className="space-between mb-1">
-        <h3 className="m-0 fw-300">Affiliations</h3>
+        <Typography.Title level={3} className={`m-0`}>
+          Affiliations
+        </Typography.Title>
       </Space>
 
-      <Table dataSource={dataSource} columns={columns} className={'mt-1'} />
+      <Table
+        dataSource={data}
+        columns={columns}
+        className={'mt-1'}
+        loading={loading}
+      />
     </Card>
   )
 }
 
 export default Affiliations
+
+export async function getServerSideProps(context: any) {
+  const session: any = await getSession(context)
+  const user = session?.user
+
+  return {
+    props: {
+      user: user,
+    },
+  }
+}
