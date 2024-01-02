@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev:local": "env-cmd -f ./.env next dev",
+    "dev:staging": "env-cmd -f ./.env.staging next dev",
+    "dev:production": "env-cmd -f ./.env.production next dev",
+    "build:local": "env-cmd -f ./.env next build",
+    "build:staging": "env-cmd -f ./.env.staging next build",
+    "build:production": "env-cmd -f ./.env.production next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -36,6 +40,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/file-saver": "^2.0.5"
+    "@types/file-saver": "^2.0.5",
+    "env-cmd": "^10.1.0"
   }
 }
