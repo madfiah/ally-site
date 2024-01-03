@@ -37,8 +37,9 @@ export default function App({
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           fontFamily: nunito.style.fontFamily,
-          colorBgContainer: isDarkMode ? '#001529' : '#fff',
-          colorBgLayout: isDarkMode ? '#18181b' : '#f1f1f1',
+          // colorBgContainer: isDarkMode ? '#001523' : '#fff',
+          // colorBgLayout: isDarkMode ? '#00111c' : '#f1f1f1',
+          // colorBgBase: isDarkMode ? '#001a2c' : '#f1f1f1',
         },
       }}
     >
@@ -52,9 +53,12 @@ export default function App({
       {pageProps.without_layout ? (
         <Component {...pageProps} />
       ) : (
-        <KbLayout session={session} themeMode={isDarkMode}>
+        <KbLayout
+          session={session}
+          themeMode={isDarkMode}
+          onChangeMode={handleChangeMode}
+        >
           <Component {...pageProps} />
-          <Button onClick={handleChangeMode}>Change Mode</Button>
         </KbLayout>
       )}
     </ConfigProvider>

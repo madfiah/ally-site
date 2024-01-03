@@ -597,7 +597,7 @@ const NewCampaign = ({ user }: IProps) => {
                   <Col span={6}>
                     <Form.Item label="Upload Logo" name="logo">
                       <Upload
-                        action={`${API_URL}/campaign/upload-image`}
+                        action={`${API_URL}/campaign/upload-image/${campaign.slug}`}
                         headers={{
                           Authorization: `Bearer ${user.token}`,
                         }}
@@ -616,7 +616,7 @@ const NewCampaign = ({ user }: IProps) => {
                   <Col span={6}>
                     <Form.Item label="Upload Cover" name="cover_image">
                       <Upload
-                        action={`${API_URL}/campaign/upload-image`}
+                        action={`${API_URL}/campaign/upload-image/${campaign.slug}`}
                         headers={{
                           Authorization: `Bearer ${user.token}`,
                         }}

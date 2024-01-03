@@ -523,9 +523,20 @@ const Index = ({ user }: IProps) => {
 
       <Card
         title={
-          <Space className="space-between">
-            <>Campaign</>
-            <Button>Create</Button>
+          <Space className="space-between" align="center">
+            <Typography.Title level={4} className={`m-0`}>
+              Campaign
+            </Typography.Title>
+            <Tooltip title="Create new campaign" placement={`topRight`}>
+              <Button
+                onClick={() => setNewCampaignPopup(true)}
+                icon={<PlusOutlined />}
+                size="small"
+                type="primary"
+              >
+                Create
+              </Button>
+            </Tooltip>
           </Space>
         }
         style={{ background: colorBgContainer }}

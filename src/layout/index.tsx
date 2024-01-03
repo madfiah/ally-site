@@ -24,9 +24,15 @@ type LayoutProps = {
   children: React.ReactNode
   session: any
   themeMode: any
+  onChangeMode: any
 }
 
-const KbLayout = ({ children, session, themeMode }: LayoutProps) => {
+const KbLayout = ({
+  children,
+  session,
+  themeMode,
+  onChangeMode,
+}: LayoutProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const {
     token: { colorBgContainer, colorBgLayout },
@@ -41,7 +47,7 @@ const KbLayout = ({ children, session, themeMode }: LayoutProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <SessionProvider session={session}>
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
           <Sider
             collapsible
             collapsed={collapsed}
@@ -87,7 +93,7 @@ const KbLayout = ({ children, session, themeMode }: LayoutProps) => {
                 background: colorBgContainer,
               }}
             >
-              <HeaderLayout />
+              <HeaderLayout onChangeMode={onChangeMode} />
             </Header>
             <Content style={{ margin: '0 16px', background: colorBgLayout }}>
               <div
@@ -101,7 +107,7 @@ const KbLayout = ({ children, session, themeMode }: LayoutProps) => {
               </div>
             </Content>
             <Footer style={{ textAlign: 'center' }}>
-              Kapital Boost PTE LTD @2023 Created by IT Teams
+              &copy; Kapital Boost &#183; 2024 <br /> {`Developed by Tech Team`}
             </Footer>
           </Layout>
         </Layout>
