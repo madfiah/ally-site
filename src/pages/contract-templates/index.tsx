@@ -6,6 +6,7 @@ import {
   PlusOutlined,
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Card,
   Form,
@@ -176,33 +177,40 @@ const ContractTemplates = ({ user }: IProps) => {
   }
 
   return (
-    <Card>
-      <Space className="space-between mb-1">
-        <h3 className="m-0 fw-300">Contact templates</h3>
+    <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Contact templates</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
 
-        <Space wrap>
-          <Search
-            allowClear
-            placeholder="Search contract"
-            onSearch={onSearch}
-            style={{ width: 200 }}
-          />
-          <Tooltip title="Create new template" placement={`topRight`}>
-            {/* <Link href={'/contract-templates/new'}> */}
-            <Button type="dashed" onClick={() => setIsModalOpen(true)}>
-              <PlusOutlined />
-            </Button>
-            {/* </Link> */}
-          </Tooltip>
+      <Card>
+        <Space className="space-between mb-1">
+          <h3 className="m-0 fw-300">Contact templates</h3>
+
+          <Space wrap>
+            <Search
+              allowClear
+              placeholder="Search contract"
+              onSearch={onSearch}
+              style={{ width: 200 }}
+            />
+            <Tooltip title="Create new template" placement={`topRight`}>
+              {/* <Link href={'/contract-templates/new'}> */}
+              <Button type="dashed" onClick={() => setIsModalOpen(true)}>
+                <PlusOutlined />
+              </Button>
+              {/* </Link> */}
+            </Tooltip>
+          </Space>
         </Space>
-      </Space>
 
-      <Table
-        dataSource={filteredContracts}
-        columns={columns}
-        className={'mt-1'}
-        loading={loading}
-      />
+        <Table
+          dataSource={filteredContracts}
+          columns={columns}
+          className={'mt-1'}
+          loading={loading}
+        />
+      </Card>
 
       <Modal
         title="Create new contract template"
@@ -268,7 +276,7 @@ const ContractTemplates = ({ user }: IProps) => {
       </Modal>
 
       {contextHolder}
-    </Card>
+    </>
   )
 }
 

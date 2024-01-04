@@ -2,6 +2,7 @@ import { Api } from '@/api/api'
 import { currency } from '@/utils/helpers'
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Card,
   Input,
@@ -216,20 +217,27 @@ const Referals = ({ user }: IProps) => {
   ]
 
   return (
-    <Card>
-      <Space className="space-between mb-1">
-        <Typography.Title level={3} className={`m-0`}>
-          Referals
-        </Typography.Title>
-      </Space>
+    <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Referals</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
 
-      <Table
-        dataSource={data}
-        columns={columns}
-        className={'mt-1'}
-        loading={loading}
-      />
-    </Card>
+      <Card>
+        <Space className="space-between mb-1">
+          <Typography.Title level={3} className={`m-0`}>
+            Referals
+          </Typography.Title>
+        </Space>
+
+        <Table
+          dataSource={data}
+          columns={columns}
+          className={'mt-1'}
+          loading={loading}
+        />
+      </Card>
+    </>
   )
 }
 

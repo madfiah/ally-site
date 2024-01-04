@@ -7,6 +7,7 @@ import {
   SearchOutlined,
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Card,
   Input,
@@ -252,6 +253,11 @@ const Affiliations = ({ user }: IProps) => {
 
   return (
     <>
+      <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb.Item>Partners</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+      </Breadcrumb>
+
       <Card>
         <Space className="space-between mb-1">
           <Typography.Title level={3} className={`m-0`}>
