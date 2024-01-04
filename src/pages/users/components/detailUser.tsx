@@ -20,7 +20,6 @@ import {
 } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { Api } from '@/api/api'
-import { Nunito } from '@next/font/google'
 import { setColorStatus } from '@/utils/userStatus'
 
 interface IProps {
@@ -29,8 +28,6 @@ interface IProps {
   userSession: any
   userId: number
 }
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 const ModalDetailUser = ({
   isModalOpen,
@@ -111,7 +108,7 @@ const ModalDetailUser = ({
       title={
         dataUser && (
           <Space className="space-between">
-            <Typography.Title level={4} className={nunito.className}>
+            <Typography.Title level={4}>
               Detail User : {dataUser?.full_name}
             </Typography.Title>
             <Tag color={setColorStatus(dataUser?.status)}>

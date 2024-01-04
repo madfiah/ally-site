@@ -5,7 +5,6 @@ import {
   ExclamationCircleOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 import {
   Button,
   Card,
@@ -26,8 +25,6 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
 const { Search } = Input
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 const Option = Select.Option
 

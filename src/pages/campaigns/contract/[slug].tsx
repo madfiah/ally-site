@@ -20,13 +20,10 @@ import { useRouter } from 'next/router'
 import { Api } from '@/api/api'
 import { getSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import { Nunito } from '@next/font/google'
 import { DownOutlined, LoadingOutlined } from '@ant-design/icons'
 import UkmContract from './UkmContract'
 import Link from 'next/link'
 import type { MenuProps } from 'antd'
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 interface IProps {
   user: any

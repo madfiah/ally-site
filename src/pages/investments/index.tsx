@@ -7,7 +7,6 @@ import {
   ExclamationCircleOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 import {
   Breadcrumb,
   Button,
@@ -51,8 +50,6 @@ const { Search } = Input
 interface IProps {
   user: any
 }
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 const Investments = ({ user }: IProps) => {
   const [modal, contextHolder] = Modal.useModal()
@@ -465,7 +462,7 @@ const Investments = ({ user }: IProps) => {
           <Col span={24}>
             <Space className="space-between mb-1">
               <h3 className="m-0 fw-300">
-                <strong className={nunito.className}>List of Investment</strong>
+                <strong>List of Investment</strong>
               </h3>
             </Space>
 

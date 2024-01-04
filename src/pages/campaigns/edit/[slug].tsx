@@ -6,7 +6,6 @@ import {
   ReloadOutlined,
   WarningOutlined,
 } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 
 import {
   Button,
@@ -53,7 +52,6 @@ dayjs.tz.setDefault('Asia/Singapore')
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-const nunito = Nunito({ subsets: ['latin'] })
 const { Option } = Select
 
 interface IProps {
@@ -597,7 +595,7 @@ const NewCampaign = ({ user }: IProps) => {
                   <Col span={6}>
                     <Form.Item label="Upload Logo" name="logo">
                       <Upload
-                        action={`${API_URL}/campaign/upload-image`}
+                        action={`${API_URL}/campaign/upload-image/${campaign?.slug}`}
                         headers={{
                           Authorization: `Bearer ${user.token}`,
                         }}
@@ -616,7 +614,7 @@ const NewCampaign = ({ user }: IProps) => {
                   <Col span={6}>
                     <Form.Item label="Upload Cover" name="cover_image">
                       <Upload
-                        action={`${API_URL}/campaign/upload-image`}
+                        action={`${API_URL}/campaign/upload-image/${campaign?.slug}`}
                         headers={{
                           Authorization: `Bearer ${user.token}`,
                         }}
@@ -820,7 +818,7 @@ const NewCampaign = ({ user }: IProps) => {
       <div className="kb-card card-shadow">
         <div className="card-title">
           <Space className="space-between">
-            <p className={nunito.className}>Edit Campaign</p>
+            <p>Edit Campaign</p>
           </Space>
         </div>
         <div className="card-body">

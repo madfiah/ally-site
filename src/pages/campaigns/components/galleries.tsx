@@ -103,7 +103,7 @@ const CampaignGallery = ({ user, campaign }: Props) => {
         Campaign Galleries
       </Divider>
       <Upload
-        action={`${API_URL}/campaign/gallery/${campaign?.id}/upload`}
+        action={`${API_URL}/campaign/galleries/${campaign?.id}/upload`}
         headers={{
           Authorization: `Bearer ${user?.token}`,
         }}

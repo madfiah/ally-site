@@ -6,7 +6,6 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import { Montserrat, Nunito, Quicksand, Ubuntu } from '@next/font/google'
 import {
   Breadcrumb,
   Button,
@@ -28,10 +27,6 @@ import FormBank from './components/formBank'
 import type { InputRef } from 'antd'
 import type { ColumnType, ColumnsType } from 'antd/es/table'
 import type { FilterConfirmProps } from 'antd/es/table/interface'
-
-const nunito = Nunito({ subsets: ['latin'] })
-const montserrat = Montserrat({ subsets: ['latin'] })
-const ubuntu = Ubuntu({ weight: '500', subsets: ['latin'] })
 
 interface DataType {
   key: string
@@ -303,7 +298,7 @@ const Banks = ({ user }: IProps) => {
         <Space className="space-between mb-1">
           <Typography.Title
             level={4}
-            className={`m-0 ${nunito.className}`}
+            className={`m-0`}
             style={{ fontWeight: '500' }}
           >
             List of Banks

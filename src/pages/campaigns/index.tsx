@@ -12,7 +12,6 @@ import {
   SearchOutlined,
   FilterOutlined,
 } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 import {
   Breadcrumb,
   Button,
@@ -45,8 +44,6 @@ import type { InputRef } from 'antd'
 
 const { Search } = Input
 const { Text } = Typography
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 interface IProps {
   user: any
@@ -365,13 +362,9 @@ const Index = ({ user }: IProps) => {
       render: (type: string) => (
         <>
           {type === 'sme' ? (
-            <Tag color={`#108ee9`} className={nunito.className}>
-              SME
-            </Tag>
+            <Tag color={`#108ee9`}>SME</Tag>
           ) : (
-            <Tag color={`#87d068`} className={nunito.className}>
-              DONATION
-            </Tag>
+            <Tag color={`#87d068`}>DONATION</Tag>
           )}
         </>
       ),
@@ -519,7 +512,7 @@ const Index = ({ user }: IProps) => {
       <div className="kb-card card-shadow">
         <div className="card-title">
           <Space className="space-between">
-            <p className={nunito.className}>Campaigns</p>
+            <p>Campaigns</p>
             <Space wrap>
               <Tooltip title="Create new campaign" placement={`topRight`}>
                 <Button onClick={() => setNewCampaignPopup(true)}>

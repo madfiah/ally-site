@@ -1,6 +1,5 @@
 import { Api } from '@/api/api'
 import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 import {
   Breadcrumb,
   Button,
@@ -21,8 +20,6 @@ const { Search } = Input
 interface IProps {
   user: any
 }
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 const Banks = ({ user }: IProps) => {
   const [loading, setLoading] = useState(false)
@@ -117,7 +114,7 @@ const Banks = ({ user }: IProps) => {
           <Col span={24}>
             <Space className="space-between mb-1">
               <h3 className="m-0 fw-300">
-                <strong className={nunito.className}>List of Get Funded</strong>
+                <strong>List of Get Funded</strong>
               </h3>
               <Search
                 allowClear
