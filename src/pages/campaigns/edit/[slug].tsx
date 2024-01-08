@@ -24,6 +24,8 @@ import {
   Tooltip,
   Breadcrumb,
   Dropdown,
+  Card,
+  Typography,
 } from 'antd'
 import CampaignGallery from '../components/galleries'
 import PdfCampaign from '../components/pdf'
@@ -815,43 +817,40 @@ const NewCampaign = ({ user }: IProps) => {
         </Breadcrumb.Item>
       </Breadcrumb>
 
-      <div className="kb-card card-shadow">
-        <div className="card-title">
-          <Space className="space-between">
-            <p>Edit Campaign</p>
-          </Space>
-        </div>
-        <div className="card-body">
-          <Tabs
-            tabPosition={'right'}
-            items={[
-              {
-                label: `Campaign Form`,
-                key: 'campaign-form',
-                children: <FormCampaign />,
-              },
-              {
-                label: `Galleries`,
-                key: 'campaign-gallery',
-                children: <CampaignGallery user={user} campaign={campaign} />,
-                disabled: campaign === null,
-              },
-              {
-                label: `PDFs`,
-                key: 'campaign-pdf',
-                children: <PdfCampaign user={user} campaign={campaign} />,
-                disabled: campaign === null,
-              },
-              {
-                label: `BD/Analyst`,
-                key: 'team-inspector',
-                children: <TeamInspector user={user} slug={slug} />,
-                disabled: campaign === null,
-              },
-            ]}
-          />
-        </div>
-      </div>
+      <Card>
+        <Typography.Title level={4} className="m-0 mb-1">
+          Edit Campaign
+        </Typography.Title>
+
+        <Tabs
+          tabPosition={'right'}
+          items={[
+            {
+              label: `Campaign Form`,
+              key: 'campaign-form',
+              children: <FormCampaign />,
+            },
+            {
+              label: `Galleries`,
+              key: 'campaign-gallery',
+              children: <CampaignGallery user={user} campaign={campaign} />,
+              disabled: campaign === null,
+            },
+            {
+              label: `PDFs`,
+              key: 'campaign-pdf',
+              children: <PdfCampaign user={user} campaign={campaign} />,
+              disabled: campaign === null,
+            },
+            {
+              label: `BD/Analyst`,
+              key: 'team-inspector',
+              children: <TeamInspector user={user} slug={slug} />,
+              disabled: campaign === null,
+            },
+          ]}
+        />
+      </Card>
     </>
   )
 }

@@ -1,5 +1,5 @@
 import { Api } from '@/api/api'
-import { Button, notification, Space, Table } from 'antd'
+import { Button, Card, notification, Space, Table, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 
 const columns = [
@@ -57,59 +57,59 @@ const DataNewUsers = ({ token, title }: IProps) => {
   }
 
   return (
-    <div>
-      <div className="kb-card with-radius">
-        <div className="card-title">
-          <Space align={`center`} size={`small`} className="space-between">
-            <p>{title}</p>
-            <Space wrap>
-              <Button
-                size="small"
-                type={day === 1 ? 'primary' : 'default'}
-                onClick={() => setDay(1)}
-              >
-                Today
-              </Button>
-              <Button
-                size="small"
-                type={day === 3 ? 'primary' : 'default'}
-                onClick={() => setDay(3)}
-              >
-                3 days
-              </Button>
-              <Button
-                size="small"
-                type={day === 7 ? 'primary' : 'default'}
-                onClick={() => setDay(7)}
-              >
-                7 days
-              </Button>
-            </Space>
+    <Card>
+      <div className="card-title">
+        <Space align={`center`} size={`small`} className="space-between">
+          <Typography.Title level={5} className="m-0 mb-0-1">
+            {title}
+          </Typography.Title>
+          <Space wrap>
+            <Button
+              size="small"
+              type={day === 1 ? 'primary' : 'default'}
+              onClick={() => setDay(1)}
+            >
+              Today
+            </Button>
+            <Button
+              size="small"
+              type={day === 3 ? 'primary' : 'default'}
+              onClick={() => setDay(3)}
+            >
+              3 days
+            </Button>
+            <Button
+              size="small"
+              type={day === 7 ? 'primary' : 'default'}
+              onClick={() => setDay(7)}
+            >
+              7 days
+            </Button>
           </Space>
-        </div>
-        <div className="card-body p-0">
-          <Table
-            loading={loading}
-            dataSource={user.data}
-            columns={columns}
-            onChange={handleTableChange}
-            pagination={{
-              total: user?.total,
-              current: user?.current_page,
-              pageSize: 5,
-              showSizeChanger: false,
-            }}
-            onRow={(record, rowIndex) => {
-              return {
-                onClick: () => {
-                  console.log(record)
-                },
-              }
-            }}
-          />
-        </div>
+        </Space>
       </div>
-    </div>
+      <div className="card-body p-0">
+        <Table
+          loading={loading}
+          dataSource={user.data}
+          columns={columns}
+          onChange={handleTableChange}
+          pagination={{
+            total: user?.total,
+            current: user?.current_page,
+            pageSize: 5,
+            showSizeChanger: false,
+          }}
+          onRow={(record, rowIndex) => {
+            return {
+              onClick: () => {
+                console.log(record)
+              },
+            }
+          }}
+        />
+      </div>
+    </Card>
   )
 }
 
