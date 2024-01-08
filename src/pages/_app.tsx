@@ -5,7 +5,12 @@ import '@/styles/global.scss'
 import { useEffect } from 'react'
 
 import React from 'react'
+import { ConfigProvider } from 'antd'
+import { Nunito } from '@next/font/google'
+
 React.useLayoutEffect = React.useEffect
+
+const nunito = Nunito({ subsets: ['latin'] })
 
 export default function App({
   Component,
@@ -21,7 +26,13 @@ export default function App({
   }, [])
 
   return (
-    <>
+    <ConfigProvider
+      theme={{
+        token: {
+          fontFamily: nunito.style.fontFamily,
+        },
+      }}
+    >
       <NextNProgress
         color="#0E64CB"
         startPosition={0.3}
@@ -36,6 +47,6 @@ export default function App({
           <Component {...pageProps} />
         </KbLayout>
       )}
-    </>
+    </ConfigProvider>
   )
 }

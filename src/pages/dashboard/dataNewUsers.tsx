@@ -1,9 +1,6 @@
 import { Api } from '@/api/api'
-import { Nunito } from '@next/font/google'
 import { Button, notification, Space, Table } from 'antd'
 import { useEffect, useState } from 'react'
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 const columns = [
   {
@@ -64,7 +61,7 @@ const DataNewUsers = ({ token, title }: IProps) => {
       <div className="kb-card with-radius">
         <div className="card-title">
           <Space align={`center`} size={`small`} className="space-between">
-            <p className={nunito.className}>{title}</p>
+            <p>{title}</p>
             <Space wrap>
               <Button
                 size="small"

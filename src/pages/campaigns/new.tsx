@@ -1,5 +1,4 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 
 import {
   Button,
@@ -22,7 +21,6 @@ import PdfCampaign from './components/pdf'
 import { Editor } from '@tinymce/tinymce-react'
 import { getSession } from 'next-auth/react'
 
-const nunito = Nunito({ subsets: ['latin'] })
 const { Option } = Select
 
 interface IProps {
@@ -547,7 +545,7 @@ const NewCampaign = ({ user }: IProps) => {
       <div className="kb-card card-shadow">
         <div className="card-title">
           <Space className="space-between">
-            <p className={nunito.className}>Create New Campaign</p>
+            <p>Create New Campaign</p>
           </Space>
         </div>
         <div className="card-body">

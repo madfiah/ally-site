@@ -516,7 +516,7 @@ const FormUser = ({ user }: IProps) => {
                         name={`nric_file`}
                       >
                         <Upload
-                          action={`${API_URL}/users/upload/nric`}
+                          action={`${API_URL}/users/upload/nric?email=${user?.email}`}
                           headers={{
                             Authorization: `Bearer ${user?.token}`,
                           }}
@@ -539,7 +539,7 @@ const FormUser = ({ user }: IProps) => {
                         name={`nric_file_back`}
                       >
                         <Upload
-                          action={`${API_URL}/users/upload/nric_back`}
+                          action={`${API_URL}/users/upload/nric_back?email=${user?.email}`}
                           headers={{
                             Authorization: `Bearer ${user?.token}`,
                           }}
@@ -562,7 +562,7 @@ const FormUser = ({ user }: IProps) => {
                         name={`address_proof`}
                       >
                         <Upload
-                          action={`${API_URL}/users/upload/address_proof`}
+                          action={`${API_URL}/users/upload/address_proof?email=${user?.email}`}
                           headers={{
                             Authorization: `Bearer ${user?.token}`,
                           }}

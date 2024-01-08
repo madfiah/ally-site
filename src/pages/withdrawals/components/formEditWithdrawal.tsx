@@ -197,7 +197,7 @@ const FormEditWithdrawal = ({
             rules={[{ required: true, message: 'Proof file is required' }]}
           >
             <Upload
-              action={`${API_URL}/withdraw/upload`}
+              action={`${API_URL}/withdraw/upload?email=${withdraw?.user_email}`}
               headers={{
                 Authorization: `Bearer ${token}`,
               }}

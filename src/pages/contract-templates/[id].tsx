@@ -6,7 +6,6 @@ import {
   LoadingOutlined,
   ReloadOutlined,
 } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 import {
   Button,
   Card,
@@ -32,8 +31,6 @@ import ContractAttachmentEditorForm from './components/attachmentEditor'
 import DetailContract from './components/DetailContract'
 import ContractEditorForm from './components/mainEditor'
 import ContractEditorSignForm from './components/signEditor'
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 interface IProps {
   user: any
@@ -104,7 +101,7 @@ const ContractTemplateEdit = ({ user }: IProps) => {
       ) : (
         <>
           <Space className="space-between">
-            <h2 className={`m-0 fw-300 ${nunito.className}`}>
+            <h2 className={`m-0 fw-300`}>
               Edit Contact Template
               <small className="d-block">
                 <Text type="secondary" italic>

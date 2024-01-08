@@ -9,7 +9,6 @@ import {
   Alert,
   notification,
 } from 'antd'
-import { Nunito, Open_Sans } from '@next/font/google'
 import { useState } from 'react'
 import Head from 'next/head'
 import ForgotPassword from './forgotPassword'
@@ -18,8 +17,6 @@ import { signIn } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import Router from 'next/router'
 import { LoginOutlined, ReloadOutlined, RestOutlined } from '@ant-design/icons'
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 interface Props {
   without_layout: boolean
@@ -86,11 +83,9 @@ const Login = ({ without_layout }: Props) => {
           </Col>
           <Col span={8} className="login-form">
             <Space direction="vertical">
-              <h1 className={`m-0 ${nunito.className}`}>
-                Kapital Boost PTE LTD
-              </h1>
+              <h1 className={`m-0`}>Kapital Boost PTE LTD</h1>
               <p
-                className={`m-0 ${nunito.className}`}
+                className={`m-0`}
                 style={{ fontSize: '18px' }}
               >{`Assalamu'alaikum KB's Team`}</p>
 
