@@ -1,10 +1,7 @@
 import { Api } from '@/api/api'
-import { Nunito } from '@next/font/google'
 import { Button, InputNumber, notification, Space, Table, Tag } from 'antd'
 import { useEffect, useState } from 'react'
 import { currency } from '@/utils/helpers'
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 const columns = [
   {
@@ -75,7 +72,7 @@ const WithdrawalRequests = ({ token, title }: IProps) => {
       <div className="kb-card with-radius">
         <div className="card-title">
           <Space align={`center`} size={`small`} className="space-between">
-            <p className={nunito.className}>Users need to be reviewed</p>
+            <p>Users need to be reviewed</p>
             <Space wrap>
               <Button
                 size="small"

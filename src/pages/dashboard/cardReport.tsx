@@ -1,9 +1,6 @@
 import { Api } from '@/api/api'
 import { LoadingOutlined } from '@ant-design/icons'
-import { Nunito } from '@next/font/google'
 import React, { useEffect, useState } from 'react'
-
-const nunito = Nunito({ subsets: ['latin'] })
 
 interface IProps {
   token: string
@@ -39,7 +36,7 @@ const CardReport = ({ token, getData, title }: IProps) => {
       style={{ height: '150px' }}
     >
       <div className="card-body">
-        <h2 className={`${nunito.className} m-0 mb-1`}>{title}</h2>
+        <h2 className={`m-0 mb-1`}>{title}</h2>
 
         {loading ? (
           <>
