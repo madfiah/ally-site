@@ -1,6 +1,6 @@
 import { Api } from '@/api/api'
 import { LoadingOutlined } from '@ant-design/icons'
-import { InputNumber, Space } from 'antd'
+import { Card, InputNumber, Space, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 interface IProps {
@@ -32,34 +32,31 @@ const CardReportDevice = ({ token, getData, title }: IProps) => {
   }, [])
 
   return (
-    <div
-      className="kb-card with-radius card-shadow"
-      style={{ height: '150px' }}
-    >
-      <div className="card-body">
-        <h2 className={`m-0 mb-1`}>{title}</h2>
+    <Card style={{ height: '165px' }}>
+      <Typography.Title level={4} className="m-0 mb-0-1">
+        {title}
+      </Typography.Title>
 
-        {loading ? (
-          <>
-            <div className="text-center">
-              <LoadingOutlined
-                style={{ fontSize: '1.5rem', padding: '1rem 0' }}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            {data !== null && (
-              <>
-                <p className="m-0">From Website : {data.website}</p>
-                <p className="m-0">From Android : {data.android}</p>
-                <p className="m-0">From IOS : {data.ios}</p>
-              </>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+      {loading ? (
+        <>
+          <div className="text-center">
+            <LoadingOutlined
+              style={{ fontSize: '1.5rem', padding: '1rem 0' }}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          {data !== null && (
+            <>
+              <p className="m-0">From Website : {data.website}</p>
+              <p className="m-0">From Android : {data.android}</p>
+              <p className="m-0">From IOS : {data.ios}</p>
+            </>
+          )}
+        </>
+      )}
+    </Card>
   )
 }
 

@@ -23,12 +23,19 @@ const { Header, Content, Footer, Sider } = Layout
 type LayoutProps = {
   children: React.ReactNode
   session: any
+  themeMode: any
+  onChangeMode: any
 }
 
-const KbLayout = ({ children, session }: LayoutProps) => {
+const KbLayout = ({
+  children,
+  session,
+  themeMode,
+  onChangeMode,
+}: LayoutProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const {
-    token: { colorBgContainer },
+    token: { colorBgContainer, colorBgLayout },
   } = theme.useToken()
 
   return (
@@ -40,18 +47,20 @@ const KbLayout = ({ children, session }: LayoutProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <SessionProvider session={session}>
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
           <Sider
             collapsible
             collapsed={collapsed}
-            theme={'light'}
+            theme={themeMode ? 'dark' : 'light'}
             onCollapse={() => setCollapsed(!collapsed)}
           >
             <div
               style={{
                 height: 32,
                 margin: 16,
-                background: 'rgba(255, 255, 255, 0.2)',
+                background: themeMode
+                  ? 'rgba(255, 255, 255, 0)'
+                  : 'rgba(255, 255, 255, 0.2)',
               }}
             >
               {collapsed ? (
@@ -71,7 +80,7 @@ const KbLayout = ({ children, session }: LayoutProps) => {
               )}
             </div>
             <Menu
-              theme="light"
+              theme={themeMode ? 'dark' : 'light'}
               defaultSelectedKeys={['1']}
               mode="inline"
               items={menuItems}
@@ -81,15 +90,15 @@ const KbLayout = ({ children, session }: LayoutProps) => {
             <Header
               style={{
                 padding: '0 20px',
-                background: '#fff',
+                background: colorBgContainer,
               }}
             >
-              <HeaderLayout />
+              <HeaderLayout onChangeMode={onChangeMode} />
             </Header>
-            <Content style={{ margin: '0 16px' }}>
+            <Content style={{ margin: '0 16px', background: colorBgLayout }}>
               <div
                 style={{
-                  padding: '0 15',
+                  padding: '0px',
                   marginTop: 16,
                   minHeight: 360,
                 }}
@@ -98,7 +107,7 @@ const KbLayout = ({ children, session }: LayoutProps) => {
               </div>
             </Content>
             <Footer style={{ textAlign: 'center' }}>
-              Kapital Boost PTE LTD @2023 Created by IT Teams
+              &copy; Kapital Boost &#183; 2024 <br /> {`Developed by Tech Team`}
             </Footer>
           </Layout>
         </Layout>

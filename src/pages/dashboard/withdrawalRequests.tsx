@@ -1,5 +1,14 @@
 import { Api } from '@/api/api'
-import { Button, InputNumber, notification, Space, Table, Tag } from 'antd'
+import {
+  Button,
+  Card,
+  InputNumber,
+  notification,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd'
 import { useEffect, useState } from 'react'
 import { currency } from '@/utils/helpers'
 
@@ -68,52 +77,52 @@ const WithdrawalRequests = ({ token, title }: IProps) => {
   }
 
   return (
-    <div>
-      <div className="kb-card with-radius">
-        <div className="card-title">
-          <Space align={`center`} size={`small`} className="space-between">
-            <p>Users need to be reviewed</p>
-            <Space wrap>
-              <Button
-                size="small"
-                type={day === 1 ? 'primary' : 'default'}
-                onClick={() => setDay(1)}
-              >
-                Today
-              </Button>
-              <Button
-                size="small"
-                type={day === 3 ? 'primary' : 'default'}
-                onClick={() => setDay(3)}
-              >
-                3 days
-              </Button>
-              <Button
-                size="small"
-                type={day === 7 ? 'primary' : 'default'}
-                onClick={() => setDay(7)}
-              >
-                7 days
-              </Button>
-            </Space>
+    <Card>
+      <div className="card-title">
+        <Space align={`center`} size={`small`} className="space-between">
+          <Typography.Title level={5} className="m-0 mb-0-1">
+            {title}
+          </Typography.Title>
+          <Space wrap>
+            <Button
+              size="small"
+              type={day === 1 ? 'primary' : 'default'}
+              onClick={() => setDay(1)}
+            >
+              Today
+            </Button>
+            <Button
+              size="small"
+              type={day === 3 ? 'primary' : 'default'}
+              onClick={() => setDay(3)}
+            >
+              3 days
+            </Button>
+            <Button
+              size="small"
+              type={day === 7 ? 'primary' : 'default'}
+              onClick={() => setDay(7)}
+            >
+              7 days
+            </Button>
           </Space>
-        </div>
-        <div className="card-body p-0">
-          <Table
-            loading={loading}
-            dataSource={withdraw.data}
-            columns={columns}
-            onChange={handleTableChange}
-            pagination={{
-              total: withdraw?.total,
-              current: withdraw?.current_page,
-              pageSize: 5,
-              showSizeChanger: false,
-            }}
-          />
-        </div>
+        </Space>
       </div>
-    </div>
+      <div className="card-body p-0">
+        <Table
+          loading={loading}
+          dataSource={withdraw.data}
+          columns={columns}
+          onChange={handleTableChange}
+          pagination={{
+            total: withdraw?.total,
+            current: withdraw?.current_page,
+            pageSize: 5,
+            showSizeChanger: false,
+          }}
+        />
+      </div>
+    </Card>
   )
 }
 

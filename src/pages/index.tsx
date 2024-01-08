@@ -79,7 +79,7 @@ const Dashboard = ({ token }: IProps) => {
 
       <Row gutter={[16, 16]}>
         <Col md={24} xl={12}>
-          <DataNewUsers token={token} title="Users need to be reviewed" />
+          <DataNewUsers token={token} title="Users Need To Be Reviewed" />
         </Col>
         <Col md={24} xl={12}>
           <WithdrawalRequests token={token} title="Withdrawal Requests" />

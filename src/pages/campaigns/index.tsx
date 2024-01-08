@@ -15,6 +15,7 @@ import {
 import {
   Breadcrumb,
   Button,
+  Card,
   DatePicker,
   Dropdown,
   Input,
@@ -26,6 +27,7 @@ import {
   Space,
   Table,
   Tag,
+  theme,
   Tooltip,
   Typography,
 } from 'antd'
@@ -65,6 +67,9 @@ interface DataType {
 type DataIndex = keyof DataType
 
 const Index = ({ user }: IProps) => {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken()
   const router = useRouter()
   const [modal, contextHolder] = Modal.useModal()
   const [campaigns, setCampaigns] = useState<any>({
@@ -509,8 +514,27 @@ const Index = ({ user }: IProps) => {
         <Breadcrumb.Item>List</Breadcrumb.Item>
       </Breadcrumb>
 
-      <div className="kb-card card-shadow">
-        <div className="card-title">
+      <Card
+        title={
+          <Space className="space-between" align="center">
+            <Typography.Title level={4} className={`m-0`}>
+              Campaign
+            </Typography.Title>
+            <Tooltip title="Create new campaign" placement={`topRight`}>
+              <Button
+                onClick={() => setNewCampaignPopup(true)}
+                icon={<PlusOutlined />}
+                size="small"
+                type="primary"
+              >
+                Create
+              </Button>
+            </Tooltip>
+          </Space>
+        }
+        style={{ background: colorBgContainer }}
+      >
+        {/* <div className="card-title">
           <Space className="space-between">
             <p>Campaigns</p>
             <Space wrap>
@@ -521,7 +545,8 @@ const Index = ({ user }: IProps) => {
               </Tooltip>
             </Space>
           </Space>
-        </div>
+        </div> */}
+
         <div className="card-body">
           <Table
             bordered
@@ -542,10 +567,11 @@ const Index = ({ user }: IProps) => {
               current: campaigns?.current_page,
               pageSize: 10,
               showSizeChanger: false,
+              style: { background: colorBgContainer },
             }}
           />
         </div>
-      </div>
+      </Card>
 
       <NewCampaignPopup
         user={user}

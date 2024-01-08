@@ -2,20 +2,22 @@ import KbLayout from '@/layout'
 import type { AppProps } from 'next/app'
 import NextNProgress from 'nextjs-progressbar'
 import '@/styles/global.scss'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import React from 'react'
-import { ConfigProvider } from 'antd'
+import { Button, ConfigProvider, theme } from 'antd'
 import { Nunito } from '@next/font/google'
 
-React.useLayoutEffect = React.useEffect
-
 const nunito = Nunito({ subsets: ['latin'] })
+
+React.useLayoutEffect = React.useEffect
 
 export default function App({
   Component,
   pageProps: { session, ...pageProps },
 }: AppProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const loader = document.getElementById('globalLoader')
@@ -25,11 +27,19 @@ export default function App({
     }
   }, [])
 
+  const handleChangeMode = () => {
+    setIsDarkMode((previousValue) => !previousValue)
+  }
+
   return (
     <ConfigProvider
       theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           fontFamily: nunito.style.fontFamily,
+          // colorBgContainer: isDarkMode ? '#001523' : '#fff',
+          // colorBgLayout: isDarkMode ? '#00111c' : '#f1f1f1',
+          // colorBgBase: isDarkMode ? '#001a2c' : '#f1f1f1',
         },
       }}
     >
@@ -43,7 +53,11 @@ export default function App({
       {pageProps.without_layout ? (
         <Component {...pageProps} />
       ) : (
-        <KbLayout session={session}>
+        <KbLayout
+          session={session}
+          themeMode={isDarkMode}
+          onChangeMode={handleChangeMode}
+        >
           <Component {...pageProps} />
         </KbLayout>
       )}
