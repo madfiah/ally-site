@@ -105,5 +105,38 @@ body {
   height: 83vh;
 }
 
+.signature-area {
+  position: relative;
+  width: 699px;
+  height: 83vh;
+  overflow-y: auto;
+  margin: auto;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+
+  .signature-canvas {
+    position: absolute;
+  }
+
+  .signature-image {
+    position: absolute;
+    height: 950px;
+    top: 0;
+    left: 0;
+  }
+}
+
+.list-signers {
+  padding: 0;
+
+  .item {
+    padding: 15px 20px;
+
+    &.active {
+      background: #f1f1f1;
+    }
+  }
+}
+
 @import 'login';
 @import 'card';

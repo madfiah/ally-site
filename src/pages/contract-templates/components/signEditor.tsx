@@ -1,14 +1,23 @@
 import { dynamicMenu } from '@/utils/dynamicData'
 import { Editor } from '@tinymce/tinymce-react'
+import { Button } from 'antd'
 import { useEffect, useState } from 'react'
+import SignaturePosition from '../components/signaturePosition'
+import { EditTwoTone, FormOutlined } from '@ant-design/icons'
 
 interface MainProps {
+  user: any
   content: string
   onChangeContent: any
 }
 
-const ContractEditorSignForm = ({ content, onChangeContent }: MainProps) => {
+const ContractEditorSignForm = ({
+  user,
+  content,
+  onChangeContent,
+}: MainProps) => {
   const [loading, setLoading] = useState(true)
+  const [signPositionPupup, setSignPositionPopup] = useState(false)
 
   const handleEditorChange = (content: any, editor: any) => {
     onChangeContent(content)
@@ -26,6 +35,17 @@ const ContractEditorSignForm = ({ content, onChangeContent }: MainProps) => {
       {loading && <center className="mt-2">Loading..</center>}
 
       <div style={{ visibility: `${loading ? 'hidden' : 'visible'}` }}>
+        <div style={{ textAlign: 'right' }}>
+          <Button
+            className="mb-1"
+            size="small"
+            icon={<FormOutlined />}
+            onClick={() => setSignPositionPopup(true)}
+          >
+            Sign Position
+          </Button>
+        </div>
+
         <Editor
           // onChange={(e, d) => console.log('changed : ', d)}
           value={content}
@@ -76,6 +96,13 @@ const ContractEditorSignForm = ({ content, onChangeContent }: MainProps) => {
           onEditorChange={handleEditorChange}
         />
       </div>
+
+      <SignaturePosition
+        user={user}
+        handleCancel={() => setSignPositionPopup(false)}
+        isModalOpen={signPositionPupup}
+        signatureContent={content}
+      />
     </>
   )
 }

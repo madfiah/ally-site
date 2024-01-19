@@ -165,6 +165,7 @@ const ContractTemplateEdit = ({ user }: IProps) => {
                 key: 'sign content',
                 children: (
                   <ContractEditorSignForm
+                    user={user}
                     content={contractTemplate?.sign_content}
                     onChangeContent={(val: any) =>
                       setContractTemplate({
