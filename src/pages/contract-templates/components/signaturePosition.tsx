@@ -17,6 +17,16 @@ import {
   notification,
 } from 'antd'
 import { useEffect, useRef, useState } from 'react'
+import useMousePosition from './useMousePosition'
+
+/**
+ * Position details
+ * Color for signers :
+ *  investor : orange
+ *  company director : green
+ *  company commissioner : chartreuse
+ *  KB director : blue
+ */
 
 interface IProps {
   user: any
@@ -41,6 +51,8 @@ const SignaturePosition = ({
   const [inEdit, setInEdit] = useState(false)
   const [signPages, setSignPages] = useState<any>([])
   const [pageActive, setPageActive] = useState(0)
+  const [coords, handleCoords] = useMousePosition(true)
+  const [signerActive, setSignerActive] = useState<any>(null)
 
   const init = () => {
     setLoading(true)
@@ -64,10 +76,10 @@ const SignaturePosition = ({
         }
         setSignPages(images)
 
-        if (canvasRef.current) {
-          const ctx = canvasRef.current.getContext('2d')
-          ctx?.strokeRect(200, 200, 40, 50)
-        }
+        // if (canvasRef.current) {
+        //   const ctx = canvasRef.current.getContext('2d')
+        //   ctx?.strokeRect(200, 200, 40, 50)
+        // }
       })
       .catch((err) => {
         notification.error(err.data.message)
@@ -89,8 +101,6 @@ const SignaturePosition = ({
     }
   }, [isModalOpen])
 
-  const data = ['Racing car sprays burning fuel into crowd.']
-
   const onChange = (checked: boolean) => {
     console.log(`switch to ${checked}`)
     setInEdit(checked)
@@ -104,7 +114,7 @@ const SignaturePosition = ({
         footer={false}
         onCancel={handleCancel}
         width={1250}
-        style={{ top: 20 }}
+        style={{ top: 20, paddingTop: 30 }}
       >
         {loading && (
           <div className="text-center my-5">
@@ -125,93 +135,150 @@ const SignaturePosition = ({
           }
         >
           <Space align="start">
-            <Card
-              style={{ width: '350px', borderColor: '#d9d9d9' }}
-              bodyStyle={{ padding: 0 }}
-              title={
-                <Space className="space-between">
-                  <Typography.Title level={5} className="m-0">
-                    Signers
-                  </Typography.Title>
-                  <Tooltip title={`Switch to edit position`}>
-                    <Switch onChange={onChange} checked={inEdit} />
-                  </Tooltip>
-                </Space>
-              }
-            >
-              <List className="list-signers">
-                <List.Item
-                  className="item"
-                  actions={
-                    inEdit
-                      ? [
-                          <a key="list-loadmore-edit">set</a>,
-                          <a key="list-loadmore-more">remove</a>,
-                        ]
-                      : []
-                  }
-                >
-                  <Space>
-                    <SelectOutlined />
-                    <span>Investor</span>
+            <div>
+              <Card
+                style={{ width: '350px', borderColor: '#d9d9d9' }}
+                bodyStyle={{ padding: 0 }}
+                title={
+                  <Space className="space-between">
+                    <Typography.Title level={5} className="m-0">
+                      Signers
+                    </Typography.Title>
+                    <Tooltip title={`Switch to edit position`}>
+                      <Switch onChange={onChange} checked={inEdit} />
+                    </Tooltip>
                   </Space>
-                </List.Item>
-                <List.Item
-                  className="item"
-                  actions={
-                    inEdit
-                      ? [
-                          <a key="list-loadmore-edit">set</a>,
-                          <a key="list-loadmore-more">remove</a>,
-                        ]
-                      : []
+                }
+              >
+                <List className="list-signers">
+                  <List.Item
+                    className={`item ${
+                      signerActive === 'investor' && 'active'
+                    }`}
+                    actions={
+                      inEdit
+                        ? [
+                            <a
+                              key="list-loadmore-edit"
+                              onClick={() => setSignerActive('investor')}
+                            >
+                              set
+                            </a>,
+                            <a key="list-loadmore-more">remove</a>,
+                          ]
+                        : []
+                    }
+                  >
+                    <Space>
+                      <SelectOutlined style={{ color: 'orange' }} />
+                      <span>INVESTOR</span>
+                    </Space>
+                  </List.Item>
+                  <List.Item
+                    className={`item ${
+                      signerActive === 'ukm_director' && 'active'
+                    }`}
+                    actions={
+                      inEdit
+                        ? [
+                            <a
+                              key="list-loadmore-edit"
+                              onClick={() => setSignerActive('ukm_director')}
+                            >
+                              set
+                            </a>,
+                            <a key="list-loadmore-more">remove</a>,
+                          ]
+                        : []
+                    }
+                  >
+                    <Space>
+                      <SelectOutlined style={{ color: 'green' }} />
+                      <span>[UKM] Director</span>
+                    </Space>
+                  </List.Item>
+                  <List.Item
+                    className={`item ${
+                      signerActive === 'ukm_commissioner' && 'active'
+                    }`}
+                    actions={
+                      inEdit
+                        ? [
+                            <a
+                              key="list-loadmore-edit"
+                              onClick={() =>
+                                setSignerActive('ukm_commissioner')
+                              }
+                            >
+                              set
+                            </a>,
+                            <a key="list-loadmore-more">remove</a>,
+                          ]
+                        : []
+                    }
+                  >
+                    <Space>
+                      <SelectOutlined style={{ color: 'chartreuse' }} />
+                      <span>[UKM] Commissioner</span>
+                    </Space>
+                  </List.Item>
+                  <List.Item
+                    className={`item ${
+                      signerActive === 'kb_director' && 'active'
+                    }`}
+                    actions={
+                      inEdit
+                        ? [
+                            <a
+                              key="list-loadmore-edit"
+                              onClick={() => setSignerActive('kb_director')}
+                            >
+                              set
+                            </a>,
+                            <a key="list-loadmore-more">remove</a>,
+                          ]
+                        : []
+                    }
+                  >
+                    <Space>
+                      <SelectOutlined style={{ color: 'blue' }} />
+                      <span>[KB] Director</span>
+                    </Space>
+                  </List.Item>
+                </List>
+              </Card>
+              <button
+                onClick={() => {
+                  if (canvasRef.current) {
+                    const ctx = canvasRef.current.getContext('2d')
+                    ctx?.clearRect(0, 0, 669, 950)
                   }
-                >
-                  <Space>
-                    <SelectOutlined />
-                    <span>[UKM] Director</span>
-                  </Space>
-                </List.Item>
-                <List.Item
-                  className="item active"
-                  actions={
-                    inEdit
-                      ? [
-                          <a key="list-loadmore-edit">set</a>,
-                          <a key="list-loadmore-more">remove</a>,
-                        ]
-                      : []
-                  }
-                >
-                  <Space>
-                    <SelectOutlined />
-                    <span>[UKM] Komisaris</span>
-                  </Space>
-                </List.Item>
-                <List.Item
-                  className="item"
-                  actions={
-                    inEdit
-                      ? [
-                          <a key="list-loadmore-edit">set</a>,
-                          <a key="list-loadmore-more">remove</a>,
-                        ]
-                      : []
-                  }
-                >
-                  <Space>
-                    <SelectOutlined />
-                    <span>[KB] Director</span>
-                  </Space>
-                </List.Item>
-              </List>
-            </Card>
+                }}
+              >
+                CLEAR
+              </button>
+            </div>
             <div className="signature-area">
               <canvas
                 ref={canvasRef}
                 width="669"
                 height="950"
                 className="signature-canvas"
+                onClick={(e) => {
+                  if (inEdit) {
+                    handleCoords(e as unknown as MouseEvent)
+                    if (canvasRef.current) {
+                      const ctx = canvasRef.current.getContext('2d')
+                      // clear current stroke
+                      ctx?.clearRect(0, 0, 669, 950)
+
+                      if (ctx) {
+                        ctx.strokeStyle = 'purple'
+                        ctx?.strokeRect(coords.x, coords.y, 200, 80)
+                      }
+                    }
+                  }
+                }}
               />
               <img
                 src={signPages[pageActive]}
