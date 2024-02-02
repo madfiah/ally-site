@@ -1,4 +1,4 @@
-import KbLayout from '@/layout'
+import AppLayout from '@/layout'
 import type { AppProps } from 'next/app'
 import NextNProgress from 'nextjs-progressbar'
 import '@/styles/global.scss'
@@ -50,17 +50,13 @@ export default function App({
         height={3}
         showOnShallow={true}
       />
-      {pageProps.without_layout ? (
+      <AppLayout
+        session={session}
+        themeMode={isDarkMode}
+        onChangeMode={handleChangeMode}
+      >
         <Component {...pageProps} />
-      ) : (
-        <KbLayout
-          session={session}
-          themeMode={isDarkMode}
-          onChangeMode={handleChangeMode}
-        >
-          <Component {...pageProps} />
-        </KbLayout>
-      )}
+      </AppLayout>
     </ConfigProvider>
   )
 }

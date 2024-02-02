@@ -1,5 +1,7 @@
+html,
 body {
   margin: 0;
+  background-color: #fff;
 }
 
 .brand {
@@ -107,7 +109,7 @@ body {
 
 .signature-area {
   position: relative;
-  width: 699px;
+  width: 960px;
   height: 83vh;
   overflow-y: auto;
   margin: auto;
@@ -121,7 +123,7 @@ body {
 
   .signature-image {
     position: absolute;
-    height: 950px;
+    height: 1324px;
     top: 0;
     left: 0;
   }
@@ -152,6 +154,28 @@ canvas.signer {
 }
 canvas.signer.edit {
   cursor: crosshair;
+}
+
+h4.ant-list-item-meta-title {
+  margin: 0;
+}
+
+.space-align-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.space-align-block {
+  flex: none;
+  margin: 8px 4px;
+  padding: 4px;
+  border: 1px solid #40a9ff;
+}
+.space-align-block .mock-block {
+  height: 100%z;
+  display: inline-block;
+  padding: 32px 8px 16px;
+  background: rgba(150, 150, 150, 0.2);
 }
 
 @import 'login';
