@@ -4,11 +4,7 @@ import {
   CheckCircleFilled,
   MailOutlined,
   MobileOutlined,
-  MobileTwoTone,
-  PhoneTwoTone,
-  RedEnvelopeOutlined,
   RocketOutlined,
-  TrophyTwoTone,
 } from '@ant-design/icons'
 import {
   Avatar,
@@ -24,10 +20,6 @@ import {
 } from 'antd'
 import React, { useState } from 'react'
 import ContactForm from './components/ContactForm'
-
-interface IProps {
-  token: string
-}
 
 const Dashboard = () => {
   const [typeSelected, setTypeSelected] = useState(null)
@@ -80,15 +72,7 @@ const Dashboard = () => {
     'Contact Section',
     'Subscribe Feature',
   ]
-  const customPlan = [
-    'Static Website / Dynamic Website',
-    'Free Hosting',
-    'Free Domain',
-    'Free 10 Email Account',
-    'Basic SEO',
-    'Free Backup Monthly',
-    'Free SSL',
-  ]
+
   const contacts = [
     {
       title: 'Email',
@@ -104,16 +88,14 @@ const Dashboard = () => {
     <main style={{ maxWidth: '80vw', margin: 'auto' }}>
       <div id="header">
         <Row justify="center" align="middle" style={{ height: '30vh' }}>
-          <Col span={8}>
-            <center>
-              <Typography.Title level={1}>
-                Welcome to Arlie Solution
-              </Typography.Title>
-              <Typography>
-                Solusi mudah untuk anda memiliki website sendiri yang modern dan
-                fungsional untuk mendukung bisnis online anda.
-              </Typography>
-            </center>
+          <Col span={8} style={{ textAlign: 'center' }}>
+            <Typography.Title level={1}>
+              Welcome to Arlie Solution
+            </Typography.Title>
+            <Typography>
+              Solusi mudah untuk anda memiliki website sendiri yang modern dan
+              fungsional untuk mendukung bisnis online anda.
+            </Typography>
           </Col>
         </Row>
       </div>
@@ -122,7 +104,7 @@ const Dashboard = () => {
         <Row gutter={50} justify="center" align="top">
           <Col span={10}>
             <Card>
-              <center>
+              <div style={{ textAlign: 'center' }}>
                 <Typography.Title level={1} style={{ marginBottom: '0px' }}>
                   Basic Plan
                 </Typography.Title>
@@ -135,7 +117,7 @@ const Dashboard = () => {
                     <Typography.Text type="secondary">/tahun</Typography.Text>
                   </Typography.Title>
                 </Space>
-              </center>
+              </div>
               <Divider />
               <List
                 itemLayout="horizontal"
@@ -157,7 +139,7 @@ const Dashboard = () => {
           </Col>
           <Col span={10}>
             <Card style={{ border: '5px solid #008d7d' }}>
-              <center>
+              <div style={{ textAlign: 'center' }}>
                 <Typography.Title level={1} style={{ marginBottom: '0px' }}>
                   Business Plan
                 </Typography.Title>
@@ -170,7 +152,7 @@ const Dashboard = () => {
                     <Typography.Text type="secondary">/tahun</Typography.Text>
                   </Typography.Title>
                 </Space>
-              </center>
+              </div>
               <Divider />
               <List
                 itemLayout="horizontal"
@@ -190,39 +172,6 @@ const Dashboard = () => {
               />
             </Card>
           </Col>
-          {/* <Col span={8}>
-            <Card>
-              <center>
-                <Typography.Title level={1} style={{ marginBottom: '0px' }}>
-                  Custom Plan
-                </Typography.Title>
-                <Space align="start">
-                  <Typography.Title level={3} type="danger">
-                    Rp.
-                  </Typography.Title>
-                  <Typography.Title type="danger" level={2}>
-                    -<Typography.Text type="secondary">/tahun</Typography.Text>
-                  </Typography.Title>
-                </Space>
-              </center>
-              <List
-                itemLayout="horizontal"
-                dataSource={customPlan}
-                renderItem={(item) => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={
-                        <CheckCircleFilled
-                          style={{ color: '#008d7d', fontSize: '1.5rem' }}
-                        />
-                      }
-                      title={item}
-                    />
-                  </List.Item>
-                )}
-              />
-            </Card>
-          </Col> */}
         </Row>
       </div>
 
@@ -288,6 +237,7 @@ const Dashboard = () => {
                 cover={<img alt="example" src={item.image} height={230} />}
                 actions={[
                   <Button
+                    key={Math.random()}
                     type="primary"
                     icon={<RocketOutlined key="preview" rotate={45} />}
                     style={{ width: '80%' }}
@@ -345,19 +295,8 @@ const Dashboard = () => {
                                 }
                               />
                             }
-                            title={
-                              <Typography.Title
-                                level={4}
-                                style={{ padding: 0, margin: 0, color: '#fff' }}
-                              >
-                                {item.title}
-                              </Typography.Title>
-                            }
-                            description={
-                              <Typography.Text style={{ color: '#fff' }}>
-                                {item.description}
-                              </Typography.Text>
-                            }
+                            title={item.title}
+                            description={item.description}
                           />
                         </List.Item>
                       )}

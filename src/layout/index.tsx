@@ -1,24 +1,8 @@
-import React, { Profiler, useState } from 'react'
-import { SessionProvider } from 'next-auth/react'
-import {
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
-  TeamOutlined,
-  UserOutlined,
-  BarsOutlined,
-  MoneyCollectOutlined,
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
-} from '@ant-design/icons'
-import type { MenuProps } from 'antd'
-import { Breadcrumb, Layout, Menu, theme, Row, Col, Space } from 'antd'
-import HeaderLayout from './header'
+import React from 'react'
+import { Layout, theme } from 'antd'
 import Head from 'next/head'
-import Link from 'next/link'
-import { menuItems } from './menuItems'
 
-const { Header, Content, Footer, Sider } = Layout
+const { Content, Footer } = Layout
 
 type LayoutProps = {
   children: React.ReactNode
@@ -29,7 +13,7 @@ type LayoutProps = {
 
 const AppLayout = ({ children, onChangeMode }: LayoutProps) => {
   const {
-    token: { colorBgContainer, colorBgLayout },
+    token: { colorBgLayout },
   } = theme.useToken()
 
   return (

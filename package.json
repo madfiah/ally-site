@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:local": "env-cmd -f ./.env next dev",
+    "dev": "next dev",
     "dev:staging": "env-cmd -f ./.env.staging next dev",
     "dev:production": "env-cmd -f ./.env.production next dev",
-    "build:local": "env-cmd -f ./.env next build",
+    "build": "next build",
     "build:staging": "env-cmd -f ./.env.staging next build",
     "build:production": "env-cmd -f ./.env.production next build",
     "start": "next start",

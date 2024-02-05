@@ -178,5 +178,16 @@ h4.ant-list-item-meta-title {
   background: rgba(150, 150, 150, 0.2);
 }
 
+#contact {
+  h4.ant-list-item-meta-title {
+    font-size: 1.5rem !important;
+    color: #fff;
+  }
+  div.ant-list-item-meta-description {
+    font-size: 1rem;
+    color: #fff;
+  }
+}
+
 @import 'login';
 @import 'card';
