@@ -37,7 +37,8 @@ const AppLayout = ({ children, onChangeMode }: LayoutProps) => {
           </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
-          &copy; Arlie Web &#183; 2024 <br /> {`Developed by Rams`}
+          &copy; Arlie &#183; {new Date().getFullYear()} <br />{' '}
+          {`Developed by Rams`}
         </Footer>
       </Layout>
     </>

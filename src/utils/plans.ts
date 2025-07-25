@@ -1,0 +1,41 @@
+export const plans = [
+  {
+    name: 'Paket Portofolio / CV / Resume Online',
+    cardStyle: { border: '5px solid #008d7d' },
+    price: '125.000',
+    discount: '100.000',
+    notes: 'Biaya Tahun Selanjutnya Rp. 50.000/tahun',
+    items: [
+      'Paket ini dirancang untuk profesional, pelajar, freelancer, atau job seeker yang ingin menampilkan profil dan pengalaman mereka secara online dengan tampilan yang modern, rapi, dan mudah diakses kapan saja melalui satu tautan (link).',
+      'Static Website',
+      'Desain Personal & Responsive',
+      'Riwayat Pendidikan & Pengalaman Kerja',
+      'Portofolio Proyek',
+      'Kontak & Media Sosial',
+      'Optimasi SEO Dasar',
+    ],
+  },
+  {
+    name: 'Paket Web Profil / Profil Perusahaan',
+    cardStyle: {},
+    desc: '',
+    price: '850.000',
+    discount: '650.000',
+    notes:
+      'Biaya Tahun Selanjutnya Rp. 150.000 + Domain Rp. 300.000 (Total Rp. 450.000/tahun)',
+    items: [
+      'Paket ini ideal untuk UMKM, startup, konsultan, atau profesional yang ingin menampilkan profil bisnis atau layanan mereka secara lebih lengkap dan kredibel dengan tampilan yang profesional dan terpercaya.',
+      'Desain profesional & responsive (HP & Desktop)',
+      'Halaman Tentang Perusahaan / Profil Diri Lengkap',
+      'Halaman Layanan / Produk',
+      'Halaman Portofolio Proyek / Klien',
+      'Halaman Kontak (dengan Google Maps & Formulir)',
+      'Tombol CTA (seperti "Hubungi Kami", "Ajukan Penawaran", dll)',
+      'Link ke media sosial & WhatsApp',
+      'Free Domain .com / .id / .net / .top (1 tahun pertama)',
+      'SEO dasar & kecepatan optimal',
+      'Siap integrasi ke email bisnis & WhatsApp Business',
+      'Maintenance & Backup Berkala (per 6 bulan)',
+    ],
+  },
+]
